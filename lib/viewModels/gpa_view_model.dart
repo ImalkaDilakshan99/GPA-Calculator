@@ -11,6 +11,7 @@ class GPANotifier extends StateNotifier<List<Course>> {
     state = [...state, Course(id: DateTime.now().toString())];
   }
 
+  // update a course
   void updateCourse(String id, double credits, String grade){
     state = [
       for (final course in state)
@@ -27,9 +28,16 @@ class GPANotifier extends StateNotifier<List<Course>> {
     ];
   }
 
+  // remove a course
+  void removeCourse(String id){
+    state = state.where((course) => course.id != id).toList();
+  }
+
   //Calculate GPA
   double calculateGPA(){
+
     if (state.isEmpty) return 0.0;
+
     double totalPoints = 0;
     double totalCredits = 0;
 
