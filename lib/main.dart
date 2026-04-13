@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/view/gpa_screen.dart';
+import 'package:gpa_calculator/view/pages/semester.dart';
 
 void main() {
   runApp(const ProviderScope(child: MainApp()));
@@ -11,6 +12,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: GPAScreen());
+    return MaterialApp(home: Semester());
   }
 }
