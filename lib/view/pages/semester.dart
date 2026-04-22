@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gpa_calculator/view/pages/addSubject.dart';
 
 class Semester extends StatefulWidget {
   const Semester({super.key});
@@ -15,7 +16,6 @@ class _SemesterState extends State<Semester> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-
           SliverAppBar(
             pinned: true,
             backgroundColor: Colors.white,
@@ -23,7 +23,11 @@ class _SemesterState extends State<Semester> {
             title: Center(
               child: const Text(
                 appTitle,
-                style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -59,9 +63,9 @@ class _SemesterState extends State<Semester> {
                           Text(' / 4.0', style: TextStyle(color: Colors.grey)),
                         ],
                       ),
-                  
+
                       const SizedBox(height: 10),
-                  
+
                       Row(
                         children: [
                           Expanded(child: infoCard('Credits', '18')),
@@ -109,16 +113,18 @@ class _SemesterState extends State<Semester> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: FloatingActionButton.extended(
-         
           onPressed: () {
-            // Add subject action
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(
+              fullscreenDialog: true,
+              builder: (context) => Addsubject()));
           },
-        
+
           foregroundColor: Colors.white,
           backgroundColor: Colors.green,
           label: const Text('Add Subject'),
           icon: const Icon(Icons.add),
-          
         ),
       ),
     );
@@ -194,13 +200,14 @@ class _SemesterState extends State<Semester> {
                   ),
                 ],
               ),
-        
+
               Spacer(),
-        
-              IconButton(icon: Icon(Icons.edit),
+
+              IconButton(
+                icon: Icon(Icons.edit),
                 color: Colors.green,
                 onPressed: () {
-                  // Edit action
+                  // Edit subject action
                 },
               ),
             ],
