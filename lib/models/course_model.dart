@@ -1,7 +1,7 @@
 class Course {
   final String id;
-  String name;
-  double credits;
+  final String name;
+  final double credits;
   String grade;
 
   Course({

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
 
 class GPAScreen extends ConsumerWidget {
+  const GPAScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final courses = ref.watch(gpaProvider);

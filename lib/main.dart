@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:gpa_calculator/view/gpa_screen.dart';
 import 'package:gpa_calculator/view/pages/semester.dart';
 
 void main() {
