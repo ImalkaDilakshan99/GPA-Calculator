@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gpa_calculator/view/pages/dashboard.dart';
 import 'package:gpa_calculator/view/pages/semester.dart';
 
 void main() {
@@ -11,6 +12,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: Semester());
+    return MaterialApp(home: Dashboard());
   }
 }
