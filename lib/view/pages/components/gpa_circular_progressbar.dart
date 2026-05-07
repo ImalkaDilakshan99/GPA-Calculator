@@ -5,8 +5,7 @@ class GPACircularProgressBar extends StatelessWidget {
   final double gpa;
   final double maxGpa;
 
-  const GPACircularProgressBar({Key? key, required this.gpa, this.maxGpa = 4.0})
-    : super(key: key);
+  const GPACircularProgressBar({super.key, required this.gpa, this.maxGpa = 4.0});
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +33,20 @@ class GPACircularProgressBar extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              Text(
+                'TOTAL CGPA',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+              ),
+
+              const SizedBox(height: 2),
+
               // GPA Value
               Text(
                 gpa.toStringAsFixed(2),
                 style: const TextStyle(
-                  fontSize: 36,
+                  fontSize: 42,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(height: 4),
@@ -55,22 +61,22 @@ class GPACircularProgressBar extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: _getGpaColor(gpa).withValues(alpha: 0.3)),
                     ),
-                    child: Text(
-                      _getGpaLabel(gpa),
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _getGpaColor(gpa),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        _getGpaLabel(gpa),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: _getGpaColor(gpa),
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                'out of $maxGpa',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-              ),
+              
+              
             ],
           ),
         ],

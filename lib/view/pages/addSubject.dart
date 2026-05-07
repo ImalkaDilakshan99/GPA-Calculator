@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gpa_calculator/models/grade_model.dart';
-import 'package:gpa_calculator/view/pages/semester.dart';
 import 'package:gpa_calculator/models/semester_model.dart';
 
 class Addsubject extends StatefulWidget {
