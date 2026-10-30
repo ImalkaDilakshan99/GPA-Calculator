@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/view/pages/dashboard.dart';
 
 void main() {
@@ -12,7 +13,10 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        home: Dashboard());
+      title: 'GPA Calculator',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.darkTheme,
+      home: const Dashboard(),
+    );
   }
 }

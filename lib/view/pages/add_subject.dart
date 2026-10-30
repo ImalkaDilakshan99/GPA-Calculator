@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/models/grade_model.dart';
 import 'package:gpa_calculator/models/semester_model.dart';
 import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
@@ -32,7 +33,12 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
     final semesters = ref.watch(semesterProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Subject")),
+      appBar: AppBar(
+        title: const Text(
+          "Add Subject",
+          style: AppTextStyles.headlineSmall,
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
 
       body: SingleChildScrollView(
@@ -40,21 +46,19 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
           children: [
             _heroBox(),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: AppDimensions.md),
 
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: AppDimensions.paddingHorizontalLg,
               child: Form(
                 key: _formKey,
-
                 child: Column(
                   children: [
-                    //Fields for subject name
+                    // Fields for subject name
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
                         hintText: "Subject Name",
-                        border: OutlineInputBorder(),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -64,23 +68,24 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                       },
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppDimensions.md),
 
-                    //Fields for credits
+                    // Fields for credits
                     Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
+                      decoration: AppDecorations.counterBox,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppDimensions.sm,
+                        vertical: AppDimensions.xs,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           IconButton(
-                            iconSize: 50,
+                            iconSize: AppDimensions.iconXl,
                             icon: const Icon(Icons.remove),
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.onPrimary,
                             ),
                             onPressed: () {
                               setState(() {
@@ -95,21 +100,21 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                             children: [
                               Text(
                                 credits.toString(),
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 50,
-                                ),
+                                style: AppTextStyles.displayLarge,
                               ),
-                              const Text('Credits'),
+                              const Text(
+                                'Credits',
+                                style: AppTextStyles.labelMedium,
+                              ),
                             ],
                           ),
 
                           IconButton(
-                            iconSize: 50,
+                            iconSize: AppDimensions.iconXl,
                             icon: const Icon(Icons.add),
                             style: IconButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
+                              backgroundColor: AppColors.primary,
+                              foregroundColor: AppColors.onPrimary,
                             ),
                             onPressed: () {
                               setState(() {
@@ -123,29 +128,22 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                       ),
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppDimensions.lg),
 
-                    //Fields for grade selection
+                    // Fields for grade selection
                     const Row(
                       children: [
                         Text(
                           'Grade Obtained',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: AppTextStyles.titleMedium,
                         ),
                       ],
                     ),
 
-                    const SizedBox(height: 10),
+                    const SizedBox(height: AppDimensions.sm),
 
                     DropdownButtonFormField<GradeModel>(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
+                      dropdownColor: AppColors.surfaceVariant,
                       hint: const Text('Select Grade'),
                       items: gradeDefinitions.map((grade) {
                         return DropdownMenuItem<GradeModel>(
@@ -154,21 +152,26 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                             children: [
                               // The Colored Circle
                               Container(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: Color(grade.colorValue),
-                                  shape: BoxShape.circle,
+                                width: AppDimensions.gradeBadgeSize,
+                                height: AppDimensions.gradeBadgeSize,
+                                decoration: AppDecorations.gradeBadge(
+                                  Color(grade.colorValue),
                                 ),
                                 child: Center(
                                   child: Text(
                                     grade.grade,
-                                    style: const TextStyle(color: Colors.white),
+                                    style: const TextStyle(
+                                      color: AppColors.textWhite,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Text(grade.gradePoint.toStringAsFixed(2)),
+                              const SizedBox(width: AppDimensions.md),
+                              Text(
+                                grade.gradePoint.toStringAsFixed(2),
+                                style: AppTextStyles.bodyMedium,
+                              ),
                             ],
                           ),
                         );
@@ -185,39 +188,41 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                         });
                       },
                     ),
-                    Row(
+
+                    const SizedBox(height: AppDimensions.xs),
+
+                    const Row(
                       children: [
                         Flexible(
                           child: Text(
                             'Select the final grade awarded for this subject.',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey[600],
-                            ),
+                            style: AppTextStyles.bodySmall,
                           ),
                         ),
                       ],
                     ),
 
-                    //Change the semester
-                    const SizedBox(height: 10),
+                    // Select the semester
+                    const SizedBox(height: AppDimensions.lg),
 
                     DropdownButtonFormField<SemesterModel>(
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                      ),
+                      dropdownColor: AppColors.surfaceVariant,
                       hint: const Text('Select Semester'),
                       items: semesters.map((semester) {
                         return DropdownMenuItem<SemesterModel>(
                           value: semester,
                           child: Row(
                             children: [
-                              const Icon(Icons.calendar_today, color: Colors.green),
-                              const SizedBox(width: 10),
-                              Text(semester.name),
+                              const Icon(
+                                Icons.calendar_today,
+                                color: AppColors.secondary,
+                                size: AppDimensions.iconSm,
+                              ),
+                              const SizedBox(width: AppDimensions.md),
+                              Text(
+                                semester.name,
+                                style: AppTextStyles.bodyLarge,
+                              ),
                             ],
                           ),
                         );
@@ -234,6 +239,8 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                         });
                       },
                     ),
+
+                    const SizedBox(height: AppDimensions.xxxl),
                   ],
                 ),
               ),
@@ -241,15 +248,18 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
           ],
         ),
       ),
-      floatingActionButton: SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
+      floatingActionButton: Padding(
+        padding: AppDimensions.paddingHorizontalLg,
+        child: SizedBox(
+          width: double.infinity,
           child: FloatingActionButton.extended(
             onPressed: _saveSubject,
-            label: const Text('Save Subject'),
-            foregroundColor: Colors.white,
-            backgroundColor: Colors.green,
+            label: const Text(
+              'Save Subject',
+              style: AppTextStyles.buttonSmall,
+            ),
+            backgroundColor: AppColors.primary,
+            foregroundColor: AppColors.onPrimary,
             icon: const Icon(Icons.check),
           ),
         ),
@@ -288,22 +298,28 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
 
   Widget _heroBox() {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: AppDimensions.paddingHorizontalLg,
       child: Container(
-        height: 130,
+        height: AppDimensions.heroCardHeight,
         width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.green,
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: AppDecorations.heroCard,
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.school, color: Colors.white),
-            SizedBox(height: 8),
+            Icon(
+              Icons.school,
+              color: AppColors.onPrimary,
+              size: AppDimensions.iconLg,
+            ),
+            SizedBox(height: AppDimensions.sm),
             Text(
               'NEW COURSE ENTRY',
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(
+                fontFamily: AppTextStyles.fontFamily,
+                color: AppColors.onPrimary,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
             ),
           ],
         ),

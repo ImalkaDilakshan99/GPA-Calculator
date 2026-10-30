@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/view/pages/add_subject.dart';
 
 class Semester extends StatefulWidget {
@@ -14,20 +15,17 @@ class _SemesterState extends State<Semester> {
     const String appTitle = "Semester";
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          SliverAppBar(
+          const SliverAppBar(
             pinned: true,
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.background,
             elevation: 0,
             title: Center(
-              child: const Text(
+              child: Text(
                 appTitle,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTextStyles.headlineMedium,
               ),
             ),
           ),
@@ -35,46 +33,45 @@ class _SemesterState extends State<Semester> {
           // Header Section
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: AppDimensions.paddingScreenAll,
               child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.green.shade50,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Semester GPA',
-                        style: TextStyle(fontSize: 16),
-                      ),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '3.90',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
+                decoration: AppDecorations.card,
+                padding: AppDimensions.paddingCard,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Semester GPA',
+                      style: AppTextStyles.bodyMedium,
+                    ),
+                    const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '3.90',
+                          style: AppTextStyles.displaySmall,
+                        ),
+                        Text(
+                          ' / 4.0',
+                          style: TextStyle(
+                            fontFamily: AppTextStyles.fontFamily,
+                            color: AppColors.textSecondary,
+                            fontSize: 16,
                           ),
-                          Text(' / 4.0', style: TextStyle(color: Colors.grey)),
-                        ],
-                      ),
+                        ),
+                      ],
+                    ),
 
-                      const SizedBox(height: 10),
+                    const SizedBox(height: AppDimensions.md),
 
-                      Row(
-                        children: [
-                          Expanded(child: infoCard('Credits', '18')),
-                          const SizedBox(width: 10),
-                          Expanded(child: infoCard('Subjects', '5')),
-                        ],
-                      ),
-                    ],
-                  ),
+                    Row(
+                      children: [
+                        Expanded(child: infoCard('Credits', '18')),
+                        const SizedBox(width: AppDimensions.md),
+                        Expanded(child: infoCard('Subjects', '5')),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -83,15 +80,22 @@ class _SemesterState extends State<Semester> {
           // Subheader Section
           const SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: AppDimensions.paddingScreen,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Subjects',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.headlineSmall,
                   ),
-                  Text('Sort by Grade', style: TextStyle(color: Colors.blue)),
+                  Text(
+                    'Sort by Grade',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      fontSize: 14,
+                      color: AppColors.secondary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -111,18 +115,18 @@ class _SemesterState extends State<Semester> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        padding: AppDimensions.paddingHorizontalLg,
         child: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.of(
-              context,
-            ).push(MaterialPageRoute(
-              fullscreenDialog: true,
-              builder: (context) => const AddSubject()));
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                fullscreenDialog: true,
+                builder: (context) => const AddSubject(),
+              ),
+            );
           },
-
-          foregroundColor: Colors.white,
-          backgroundColor: Colors.green,
+          foregroundColor: AppColors.onPrimary,
+          backgroundColor: AppColors.primary,
           label: const Text('Add Subject'),
           icon: const Icon(Icons.add),
         ),
@@ -133,15 +137,22 @@ class _SemesterState extends State<Semester> {
   // Helper for info boxes
   Widget infoCard(String title, String value) {
     return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.green.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      padding: AppDimensions.paddingAllSm,
+      decoration: AppDecorations.statTile,
       child: Column(
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: AppTextStyles.fontFamily,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          Text(
+            value,
+            style: AppTextStyles.titleMedium,
+          ),
         ],
       ),
     );
@@ -150,68 +161,60 @@ class _SemesterState extends State<Semester> {
   // Refactored subject widget with parameters
   Widget subject(String name, String code, String credits, String grade) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
+      padding: AppDimensions.paddingScreen,
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            children: [
-              Container(
-                height: 40,
-                width: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: Colors.green,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  grade,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+        decoration: AppDecorations.card,
+        padding: AppDimensions.paddingCard,
+        child: Row(
+          children: [
+            Container(
+              height: AppDimensions.gradeBadgeLarge,
+              width: AppDimensions.gradeBadgeLarge,
+              alignment: Alignment.center,
+              decoration: AppDecorations.gradeBadgeRounded(AppColors.success),
+              child: Text(
+                grade,
+                style: const TextStyle(
+                  fontFamily: AppTextStyles.fontFamily,
+                  color: AppColors.onPrimary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+            ),
+            const SizedBox(width: AppDimensions.lg),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: AppTextStyles.titleMedium,
+                ),
+                Row(
+                  children: [
+                    Text(
+                      code,
+                      style: AppTextStyles.bodySmall,
                     ),
-                  ),
-                  Row(
-                    children: [
-                      Text(code, style: const TextStyle(color: Colors.grey)),
-                      const SizedBox(width: 10),
-                      Text(
-                        '$credits Credits',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    const SizedBox(width: AppDimensions.sm),
+                    Text(
+                      '$credits Credits',
+                      style: AppTextStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ),
 
-              Spacer(),
+            const Spacer(),
 
-              IconButton(
-                icon: Icon(Icons.edit),
-                color: Colors.green,
-                onPressed: () {
-                  // Edit subject action
-                },
-              ),
-            ],
-          ),
+            IconButton(
+              icon: const Icon(Icons.edit),
+              color: AppColors.secondary,
+              onPressed: () {
+                // Edit subject action
+              },
+            ),
+          ],
         ),
       ),
     );

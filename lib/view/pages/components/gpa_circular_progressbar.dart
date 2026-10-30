@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:gpa_calculator/core/theme/theme.dart';
 
 class GPACircularProgressBar extends StatelessWidget {
   final double gpa;
@@ -9,22 +10,26 @@ class GPACircularProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage = gpa / maxGpa;
+    final percentage = (gpa / maxGpa).clamp(0.0, 1.0);
+    final gpaColor = _getGpaColor(gpa);
 
     return SizedBox(
-      width: 200,
-      height: 200,
+      width: AppDimensions.progressIndicatorSize,
+      height: AppDimensions.progressIndicatorSize,
       child: Stack(
         alignment: Alignment.center,
         children: [
           // Circular Progress Painter
           CustomPaint(
-            size: const Size(200, 200),
+            size: const Size(
+              AppDimensions.progressIndicatorSize,
+              AppDimensions.progressIndicatorSize,
+            ),
             painter: CircularProgressPainter(
               percentage: percentage,
-              backgroundColor: Colors.grey.shade200,
-              progressColor: _getGpaColor(gpa),
-              strokeWidth: 16,
+              backgroundColor: AppColors.surfaceVariant,
+              progressColor: gpaColor,
+              strokeWidth: AppDimensions.progressStrokeWidth,
             ),
             isComplex: true,
             willChange: false,
@@ -33,50 +38,35 @@ class GPACircularProgressBar extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'TOTAL CGPA',
-                style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                style: AppTextStyles.labelSmall,
               ),
 
-              const SizedBox(height: 2),
+              const SizedBox(height: AppDimensions.xxs),
 
               // GPA Value
               Text(
                 gpa.toStringAsFixed(2),
-                style: const TextStyle(
-                  fontSize: 42,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                style: AppTextStyles.displayMedium,
+              ),
+
+              const SizedBox(height: AppDimensions.xs),
+
+              // Row with status pill badge
+              Container(
+                decoration: AppDecorations.gpaStatusPill(gpaColor),
+                padding: AppDimensions.paddingAllSm,
+                child: Text(
+                  _getGpaLabel(gpa),
+                  style: TextStyle(
+                    fontFamily: AppTextStyles.fontFamily,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: gpaColor,
+                  ),
                 ),
               ),
-              const SizedBox(height: 4),
-              // Row with icon + label
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(width: 4),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _getGpaColor(gpa).withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: _getGpaColor(gpa).withValues(alpha: 0.3)),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        _getGpaLabel(gpa),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: _getGpaColor(gpa),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              
-              
             ],
           ),
         ],
@@ -85,10 +75,10 @@ class GPACircularProgressBar extends StatelessWidget {
   }
 
   Color _getGpaColor(double gpa) {
-    if (gpa >= 3.7) return Colors.green;
-    if (gpa >= 3.0) return Colors.blue;
-    if (gpa >= 2.0) return Colors.orange;
-    return Colors.red;
+    if (gpa >= 3.7) return AppColors.success;
+    if (gpa >= 3.0) return AppColors.info;
+    if (gpa >= 2.0) return AppColors.warning;
+    return AppColors.error;
   }
 
   String _getGpaLabel(double gpa) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/models/semester_model.dart';
 import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
 
@@ -28,17 +29,21 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Semester')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(
+        title: const Text(
+          'Add Semester',
+          style: AppTextStyles.headlineSmall,
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: AppDimensions.paddingScreenAll,
         child: Form(
           key: _formKey,
           child: Column(
             children: [
-
               _heroCard(),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppDimensions.xxl),
 
               TextFormField(
                 controller: _nameController,
@@ -51,10 +56,11 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
                 decoration: const InputDecoration(
                   labelText: 'Semester Name',
                   hintText: 'e.g. Fall 2024 or sem1 in yr2',
-                  border: OutlineInputBorder(),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: AppDimensions.lg),
+
               TextFormField(
                 controller: _yearController,
                 validator: (value) {
@@ -66,61 +72,19 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
                 decoration: const InputDecoration(
                   labelText: 'Academic Year',
                   hintText: 'e.g. 2024/2025',
-                  border: OutlineInputBorder(),
                 ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<SemesterNumber>(
-                initialValue: _selectedSemester,
-                decoration: const InputDecoration(
-                  labelText: 'Semester',
-                  border: OutlineInputBorder(),
-                ),
-                isExpanded: true,
-                hint: const Text('Select Semester'),
-                items: const [
-                  DropdownMenuItem(
-                    value: SemesterNumber.sem1,
-                    child: Text('Semester 1'),
-                  ),
-                  DropdownMenuItem(
-                    value: SemesterNumber.sem2,
-                    child: Text('Semester 2'),
-                  ),
-                ],
-                validator: (value) {
-                  if (value == null) {
-                    return 'Please select a semester';
-                  }
-                  return null;
-                },
-                onChanged: (SemesterNumber? value) {
-                  setState(() {
-                    _selectedSemester = value;
-                  });
-                },
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: AppDimensions.xxl),
 
               ElevatedButton(
                 onPressed: _saveSemester,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurpleAccent,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  iconSize: 24,
-                ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.save_outlined),
-                    SizedBox(width: 8),
-                    Text('Save Semester', style: TextStyle(fontSize: 20)),
+                    SizedBox(width: AppDimensions.sm),
+                    Text('Save Semester'),
                   ],
                 ),
               ),
@@ -150,17 +114,23 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
   }
 
   Widget _heroCard() {
-    return Column(children: [
-      Container(
-        width: 100,
-        height: 100,
-        decoration: const BoxDecoration(
-          color: Colors.deepPurpleAccent,
-          shape: BoxShape.circle,
+    return Column(
+      children: [
+        Container(
+          width: AppDimensions.heroCircleSize,
+          height: AppDimensions.heroCircleSize,
+          decoration: AppDecorations.heroCircle,
+          child: const Icon(
+            Icons.date_range_outlined,
+            color: AppColors.onPrimary,
+            size: AppDimensions.iconHero,
+          ),
         ),
-        child: const Icon(Icons.date_range_outlined, color: Colors.white, size: 60)),
-      const SizedBox(height: 16),
-      const Text('New Semester Entry', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const SizedBox(height: AppDimensions.lg),
+        const Text(
+          'New Semester Entry',
+          style: AppTextStyles.headlineSmall,
+        ),
       ],
     );
   }
