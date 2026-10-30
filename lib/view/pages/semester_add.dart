@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gpa_calculator/models/semester_model.dart';
+import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
 
 enum SemesterNumber { sem1, sem2 }
 
-class SemesterAdd extends StatefulWidget {
+class SemesterAdd extends ConsumerStatefulWidget {
   const SemesterAdd({super.key});
 
   @override
-  State<SemesterAdd> createState() => _SemesterAddState();
+  ConsumerState<SemesterAdd> createState() => _SemesterAddState();
 }
 
-class _SemesterAddState extends State<SemesterAdd> {
+class _SemesterAddState extends ConsumerState<SemesterAdd> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _yearController = TextEditingController();
   SemesterNumber? _selectedSemester;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _yearController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +38,12 @@ class _SemesterAddState extends State<SemesterAdd> {
 
               _heroCard(),
 
-              SizedBox(height: 24),
+              const SizedBox(height: 24),
 
               TextFormField(
+                controller: _nameController,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.trim().isEmpty) {
                     return 'Please enter semester name';
                   }
                   return null;
@@ -43,8 +56,9 @@ class _SemesterAddState extends State<SemesterAdd> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _yearController,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.trim().isEmpty) {
                     return 'Please enter academic year';
                   }
                   return null;
@@ -57,7 +71,7 @@ class _SemesterAddState extends State<SemesterAdd> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<SemesterNumber>(
-                value: _selectedSemester,
+                initialValue: _selectedSemester,
                 decoration: const InputDecoration(
                   labelText: 'Semester',
                   border: OutlineInputBorder(),
@@ -90,11 +104,7 @@ class _SemesterAddState extends State<SemesterAdd> {
               const SizedBox(height: 24),
 
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    // Process data.
-                  }
-                },
+                onPressed: _saveSemester,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurpleAccent,
                   foregroundColor: Colors.white,
@@ -105,12 +115,12 @@ class _SemesterAddState extends State<SemesterAdd> {
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   iconSize: 24,
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.save_outlined,),
-                    const SizedBox(width: 8),
-                    const Text('Save Semester',style: TextStyle( fontSize: 20),),
+                    Icon(Icons.save_outlined),
+                    SizedBox(width: 8),
+                    Text('Save Semester', style: TextStyle(fontSize: 20)),
                   ],
                 ),
               ),
@@ -121,18 +131,36 @@ class _SemesterAddState extends State<SemesterAdd> {
     );
   }
 
+  void _saveSemester() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final semester = SemesterModel(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: _nameController.text.trim(),
+      year: _yearController.text.trim(),
+    );
+
+    ref.read(semesterProvider.notifier).addSemester(semester);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Semester added successfully')),
+    );
+
+    Navigator.of(context).pop();
+  }
+
   Widget _heroCard() {
     return Column(children: [
       Container(
         width: 100,
         height: 100,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.deepPurpleAccent,
           shape: BoxShape.circle,
         ),
-        child: Icon(Icons.date_range_outlined, color: Colors.white, size: 60,)),
-      SizedBox(height: 16),
-      Text('New Semester Entry', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        child: const Icon(Icons.date_range_outlined, color: Colors.white, size: 60)),
+      const SizedBox(height: 16),
+      const Text('New Semester Entry', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
       ],
     );
   }

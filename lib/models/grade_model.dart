@@ -1,14 +1,11 @@
-import 'dart:ui';
-
 class GradeModel {
   final String grade;
-  final Color color;
-  final double gradepoint;
+  final int colorValue;
+  final double gradePoint;
 
-  GradeModel({
+  const GradeModel({
     required this.grade,
-    required this.color,
-    required this.gradepoint,
+    required this.colorValue,
+    required this.gradePoint,
   });
-
 }

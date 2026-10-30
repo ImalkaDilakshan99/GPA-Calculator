@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:gpa_calculator/view/pages/addSubject.dart';
+import 'package:gpa_calculator/view/pages/add_subject.dart';
 
 class Semester extends StatefulWidget {
   const Semester({super.key});
@@ -118,7 +118,7 @@ class _SemesterState extends State<Semester> {
               context,
             ).push(MaterialPageRoute(
               fullscreenDialog: true,
-              builder: (context) => Addsubject()));
+              builder: (context) => const AddSubject()));
           },
 
           foregroundColor: Colors.white,
