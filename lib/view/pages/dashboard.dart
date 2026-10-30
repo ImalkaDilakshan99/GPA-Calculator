@@ -4,6 +4,7 @@ import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/models/semester_model.dart';
 import 'package:gpa_calculator/view/pages/components/gpa_circular_progressbar.dart';
 import 'package:gpa_calculator/view/pages/semester_add.dart';
+import 'package:gpa_calculator/view/pages/semester_view.dart';
 import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
 
 class Dashboard extends ConsumerWidget {
@@ -131,7 +132,7 @@ class Dashboard extends ConsumerWidget {
           else
             SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) => _semesterCard(semesters[index]),
+                (context, index) => _semesterCard(context, semesters[index]),
                 childCount: semesters.length,
               ),
             ),
@@ -173,55 +174,71 @@ class Dashboard extends ConsumerWidget {
     );
   }
 
-  Widget _semesterCard(SemesterModel semester) {
+  Widget _semesterCard(BuildContext context, SemesterModel semester) {
     return Padding(
       padding: AppDimensions.paddingScreen,
-      child: Container(
-        decoration: AppDecorations.card,
-        padding: AppDimensions.paddingCard,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  semester.name,
-                  style: AppTextStyles.headlineLarge,
+      child: Material(
+        color: Colors.transparent,
+        child: Ink(
+          decoration: AppDecorations.card,
+          child: InkWell(
+            borderRadius: AppDimensions.borderRadiusMd,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SemesterView(semester: semester),
                 ),
-                const Spacer(),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: AppDimensions.iconSm,
-                  color: AppColors.textPrimary,
-                ),
-              ],
-            ),
+              );
+            },
+            child: Padding(
+              padding: AppDimensions.paddingCard,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        semester.name,
+                        style: AppTextStyles.headlineLarge,
+                      ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        size: AppDimensions.iconSm,
+                        color: AppColors.textPrimary,
+                      ),
+                    ],
+                  ),
 
-            Text(
-              semester.year,
-              style: AppTextStyles.bodyMedium,
-            ),
+                  Text(
+                    semester.year,
+                    style: AppTextStyles.bodyMedium,
+                  ),
 
-            const SizedBox(height: 25),
+                  const SizedBox(height: 25),
 
-            Row(
-              children: [
-                const Spacer(),
-                Column(
-                  children: [
-                    const Text(
-                      'Term GPA',
-                      style: AppTextStyles.bodyMedium,
-                    ),
-                    Text(
-                      semester.gpa.toStringAsFixed(2),
-                      style: AppTextStyles.displaySmall,
-                    ),
-                  ],
-                ),
-              ],
+                  Row(
+                    children: [
+                      const Spacer(),
+                      Column(
+                        children: [
+                          const Text(
+                            'Term GPA',
+                            style: AppTextStyles.bodyMedium,
+                          ),
+                          Text(
+                            semester.gpa.toStringAsFixed(2),
+                            style: AppTextStyles.displaySmall,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );

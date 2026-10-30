@@ -98,9 +98,15 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
   void _saveSemester() {
     if (!_formKey.currentState!.validate()) return;
 
+    final enteredName = _nameController.text.trim();
+    final semLabel = _selectedSemester == SemesterNumber.sem1 ? 'Semester 1' : 'Semester 2';
+    final fullName = enteredName.toLowerCase().contains('sem')
+        ? enteredName
+        : '$enteredName ($semLabel)';
+
     final semester = SemesterModel(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: _nameController.text.trim(),
+      name: fullName,
       year: _yearController.text.trim(),
     );
 

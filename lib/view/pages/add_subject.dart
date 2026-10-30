@@ -6,7 +6,9 @@ import 'package:gpa_calculator/models/semester_model.dart';
 import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
 
 class AddSubject extends ConsumerStatefulWidget {
-  const AddSubject({super.key});
+  final SemesterModel? initialSemester;
+
+  const AddSubject({super.key, this.initialSemester});
 
   @override
   ConsumerState<AddSubject> createState() => _AddSubjectState();
@@ -21,6 +23,12 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
 
   GradeModel? selectedGrade;
   SemesterModel? selectedSemester;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedSemester = widget.initialSemester;
+  }
 
   @override
   void dispose() {
@@ -206,6 +214,7 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                     const SizedBox(height: AppDimensions.lg),
 
                     DropdownButtonFormField<SemesterModel>(
+                      initialValue: selectedSemester,
                       dropdownColor: AppColors.surfaceVariant,
                       hint: const Text('Select Semester'),
                       items: semesters.map((semester) {
@@ -288,6 +297,15 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
       credits: credits.toDouble(),
       grade: selectedGrade!.grade,
     );
+
+    // Update the semester's GPA in semesterProvider if a semester is selected
+    if (selectedSemester != null) {
+      final updatedGpa = notifier.calculateGPA();
+      ref.read(semesterProvider.notifier).updateSemester(
+        selectedSemester!.id,
+        gpa: updatedGpa,
+      );
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Subject added successfully')),
