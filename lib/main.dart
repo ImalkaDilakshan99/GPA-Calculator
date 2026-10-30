@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
-import 'package:gpa_calculator/view/pages/dashboard.dart';
+import 'package:gpa_calculator/view/pages/main_screen.dart';
 
 void main() {
   runApp(const ProviderScope(child: MainApp()));
@@ -16,7 +16,7 @@ class MainApp extends StatelessWidget {
       title: 'GPA Calculator',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const Dashboard(),
+      home: const MainScreen(),
     );
   }
 }

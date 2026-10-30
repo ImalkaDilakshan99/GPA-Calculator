@@ -68,5 +68,25 @@ abstract final class AppDecorations {
       border: Border.all(color: statusColor.withValues(alpha: 0.3)),
     );
   }
+
+  /// Navigation / Menu bar capsule container.
+  static final BoxDecoration navBar = BoxDecoration(
+    color: AppColors.surfaceVariant,
+    borderRadius: AppDimensions.borderRadiusFull,
+    border: Border.all(color: AppColors.borderSubtle, width: 1),
+    boxShadow: const [
+      BoxShadow(
+        color: Color(0x33000000),
+        blurRadius: 16,
+        offset: Offset(0, 4),
+      ),
+    ],
+  );
+
+  /// Active nav bar item indicator.
+  static const BoxDecoration navBarActiveItem = BoxDecoration(
+    color: AppColors.primary,
+    borderRadius: AppDimensions.borderRadiusXl,
+  );
 }
 
