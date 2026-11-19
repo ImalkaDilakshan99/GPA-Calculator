@@ -3,6 +3,7 @@ import 'package:gpa_calculator/core/database/database_providers.dart';
 import 'package:gpa_calculator/core/services/gpa_calculator_service.dart';
 import 'package:gpa_calculator/domain/entities/semester_entity.dart';
 import 'package:gpa_calculator/domain/entities/semester_subject_entity.dart';
+import 'package:gpa_calculator/domain/entities/student_profile_entity.dart';
 import 'package:gpa_calculator/domain/entities/subject_entity.dart';
 import 'package:gpa_calculator/models/grade_model.dart';
 
@@ -58,6 +59,12 @@ final cumulativeGpaProvider = Provider<GpaCalculationResult>((ref) {
 final allSubjectsProvider = FutureProvider<List<SubjectEntity>>((ref) {
   final repo = ref.watch(subjectRepositoryProvider);
   return repo.getAllSubjects();
+});
+
+// ── Student profile stream ───────────────────────────────────────────
+final studentProfileStreamProvider = StreamProvider<StudentProfileEntity?>((ref) {
+  final repo = ref.watch(studentRepositoryProvider);
+  return repo.watchProfile();
 });
 
 // ── Semester CRUD operations ─────────────────────────────────────────

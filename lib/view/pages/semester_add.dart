@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:gpa_calculator/core/database/database_providers.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/domain/entities/semester_entity.dart';
 import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
@@ -15,7 +16,6 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _yearController = TextEditingController();
-  int _semesterNumber = 1;
   bool _isSaving = false;
 
   @override
@@ -67,7 +67,10 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter academic year';
                   }
-                  if (int.tryParse(value.trim()) == null) {
+                  final year = int.tryParse(
+                    RegExp(r'\d{4}').firstMatch(value)?.group(0) ?? value.trim(),
+                  );
+                  if (year == null) {
                     return 'Please enter a valid year (e.g. 2024)';
                   }
                   return null;
@@ -75,60 +78,6 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
                 decoration: const InputDecoration(
                   labelText: 'Academic Year',
                   hintText: 'e.g. 2024',
-                ),
-              ),
-
-              const SizedBox(height: AppDimensions.lg),
-
-              // Semester number selector
-              Container(
-                decoration: AppDecorations.counterBox,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppDimensions.sm,
-                  vertical: AppDimensions.xs,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      iconSize: AppDimensions.iconXl,
-                      icon: const Icon(Icons.remove),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.onPrimary,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          if (_semesterNumber > 1) _semesterNumber--;
-                        });
-                      },
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          _semesterNumber.toString(),
-                          style: AppTextStyles.displayLarge,
-                        ),
-                        const Text(
-                          'Semester Number',
-                          style: AppTextStyles.labelMedium,
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      iconSize: AppDimensions.iconXl,
-                      icon: const Icon(Icons.add),
-                      style: IconButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.onPrimary,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          if (_semesterNumber < 12) _semesterNumber++;
-                        });
-                      },
-                    ),
-                  ],
                 ),
               ),
 
@@ -168,11 +117,29 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
 
     try {
       final now = DateTime.now();
+      final yearStr = _yearController.text.trim();
+      final year = int.tryParse(
+            RegExp(r'\d{4}').firstMatch(yearStr)?.group(0) ?? yearStr,
+          ) ??
+          now.year;
+
+      // Automatically determine the next semester number for this academic year
+      final existingSemesters =
+          await ref.read(semesterRepositoryProvider).getAllSemesters();
+      final semestersInYear =
+          existingSemesters.where((s) => s.academicYear == year).toList();
+      final nextSemesterNumber = semestersInYear.isEmpty
+          ? 1
+          : (semestersInYear
+                  .map((s) => s.semesterNumber)
+                  .reduce((a, b) => a > b ? a : b) +
+              1);
+
       final semester = SemesterEntity(
         id: 0, // auto-increment
         name: _nameController.text.trim(),
-        academicYear: int.parse(_yearController.text.trim()),
-        semesterNumber: _semesterNumber,
+        academicYear: year,
+        semesterNumber: nextSemesterNumber,
         createdAt: now,
         updatedAt: now,
       );
