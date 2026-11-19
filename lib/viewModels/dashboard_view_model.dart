@@ -122,6 +122,52 @@ Future<void> addSubjectToSemester(
   );
 }
 
+/// Updates an existing subject attempt (and its subject name) in the database.
+Future<void> updateSubjectInSemester(
+  WidgetRef ref, {
+  required SemesterSubjectEntity attempt,
+  required String subjectName,
+  required double credits,
+  required String grade,
+  required double gradePoint,
+  int? semesterId,
+}) async {
+  final subjectRepo = ref.read(subjectRepositoryProvider);
+
+  // 1. Update the reusable subject definition if the name changed
+  if (attempt.subject != null) {
+    if (attempt.subject!.subjectName != subjectName) {
+      await subjectRepo.updateSubject(
+        attempt.subject!.copyWith(
+          subjectName: subjectName,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  } else {
+    final existing = await subjectRepo.getSubjectById(attempt.subjectId);
+    if (existing != null && existing.subjectName != subjectName) {
+      await subjectRepo.updateSubject(
+        existing.copyWith(
+          subjectName: subjectName,
+          updatedAt: DateTime.now(),
+        ),
+      );
+    }
+  }
+
+  // 2. Update the attempt record
+  await subjectRepo.updateSubjectAttempt(
+    attempt.copyWith(
+      credits: credits,
+      grade: grade,
+      gradePoint: gradePoint,
+      semesterId: semesterId ?? attempt.semesterId,
+      updatedAt: DateTime.now(),
+    ),
+  );
+}
+
 /// Deletes a subject attempt (and its reusable subject if no other attempts exist).
 Future<void> deleteSubjectAttempt(WidgetRef ref, SemesterSubjectEntity attempt) async {
   final subjectRepo = ref.read(subjectRepositoryProvider);

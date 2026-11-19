@@ -112,13 +112,43 @@ void main() {
     expect(updatedGpa.gpa, 3.43);
     expect(updatedGpa.totalCredits, 7.0);
 
-    // 6. Delete Subject Attempt
+    // 6. Edit Subject Attempt via updateSubjectInSemester
+    final attemptToEdit = updatedSubjects.last;
+    final subjectRepoImpl = container.read(subjectRepositoryProvider);
+    // Update subject definition name
+    await subjectRepoImpl.updateSubject(
+      SubjectEntity(
+        id: attemptToEdit.subjectId,
+        subjectName: 'Advanced Calculus',
+        createdAt: now,
+        updatedAt: DateTime.now(),
+      ),
+    );
+    // Update attempt
+    await subjectRepoImpl.updateSubjectAttempt(
+      attemptToEdit.copyWith(
+        credits: 3.0,
+        grade: 'A',
+        gradePoint: 4.0,
+        updatedAt: DateTime.now(),
+      ),
+    );
+
+    final afterEditSubjects = await container.read(semesterRepositoryProvider).getSemesterSubjects(semId);
+    expect(afterEditSubjects.length, 2);
+    final edited = afterEditSubjects.firstWhere((s) => s.id == attemptToEdit.id);
+    expect(edited.subject?.subjectName, 'Advanced Calculus');
+    expect(edited.credits, 3.0);
+    expect(edited.grade, 'A');
+    expect(edited.gradePoint, 4.0);
+
+    // 7. Delete Subject Attempt
     await subjectRepo.deleteSubjectAttempt(updatedSubjects.first.id);
     final remainingSubjects = await container.read(semesterRepositoryProvider).getSemesterSubjects(semId);
     expect(remainingSubjects.length, 1);
-    expect(remainingSubjects.first.credits, 4.0);
+    expect(remainingSubjects.first.credits, 3.0);
 
-    // 7. Delete Semester cascades and cleans up
+    // 8. Delete Semester cascades and cleans up
     await container.read(semesterRepositoryProvider).deleteSemester(semId);
     final finalSemesters = await container.read(semesterRepositoryProvider).getAllSemesters();
     expect(finalSemesters, isEmpty);

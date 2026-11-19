@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
 import 'package:gpa_calculator/domain/entities/semester_entity.dart';
+import 'package:gpa_calculator/domain/entities/semester_subject_entity.dart';
 import 'package:gpa_calculator/models/grade_model.dart';
 import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class AddSubject extends ConsumerStatefulWidget {
   final int? initialSemesterId;
+  final SemesterSubjectEntity? attemptToEdit;
 
-  const AddSubject({super.key, this.initialSemesterId});
+  const AddSubject({
+    super.key,
+    this.initialSemesterId,
+    this.attemptToEdit,
+  });
+
+  bool get isEditing => attemptToEdit != null;
 
   @override
   ConsumerState<AddSubject> createState() => _AddSubjectState();
@@ -16,7 +24,7 @@ class AddSubject extends ConsumerStatefulWidget {
 
 class _AddSubjectState extends ConsumerState<AddSubject> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  late final TextEditingController _nameController;
 
   int credits = 0;
   static const int _maxCredits = 12;
@@ -24,6 +32,24 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
   GradeModel? selectedGrade;
   SemesterEntity? selectedSemester;
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final editAttempt = widget.attemptToEdit;
+    _nameController = TextEditingController(
+      text: editAttempt?.subject?.subjectName ?? '',
+    );
+    credits = editAttempt != null ? editAttempt.credits.toInt() : 0;
+    if (editAttempt != null && editAttempt.grade != null) {
+      final match = gradeDefinitions.where(
+        (g) => g.grade.trim().toUpperCase() == editAttempt.grade!.trim().toUpperCase(),
+      );
+      if (match.isNotEmpty) {
+        selectedGrade = match.first;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -36,9 +62,10 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
     final semestersAsync = ref.watch(semestersStreamProvider);
 
     // Pre-select semester when semesters load and we have an initial ID
+    final targetSemesterId = widget.attemptToEdit?.semesterId ?? widget.initialSemesterId;
     semestersAsync.whenData((semesters) {
-      if (selectedSemester == null && widget.initialSemesterId != null) {
-        final match = semesters.where((s) => s.id == widget.initialSemesterId);
+      if (selectedSemester == null && targetSemesterId != null) {
+        final match = semesters.where((s) => s.id == targetSemesterId);
         if (match.isNotEmpty) {
           // Use addPostFrameCallback to avoid setState during build
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,8 +79,8 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Add Subject",
+        title: Text(
+          widget.isEditing ? "Edit Subject" : "Add Subject",
           style: AppTextStyles.headlineSmall,
         ),
       ),
@@ -161,6 +188,8 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                     const SizedBox(height: AppDimensions.sm),
 
                     DropdownButtonFormField<GradeModel>(
+                      key: ValueKey(selectedGrade?.grade),
+                      initialValue: selectedGrade,
                       dropdownColor: AppColors.surfaceVariant,
                       hint: const Text('Select Grade'),
                       items: gradeDefinitions.map((grade) {
@@ -289,13 +318,15 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                       color: AppColors.onPrimary,
                     ),
                   )
-                : const Text(
-                    'Save Subject',
+                : Text(
+                    widget.isEditing ? 'Update Subject' : 'Save Subject',
                     style: AppTextStyles.buttonSmall,
                   ),
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.onPrimary,
-            icon: _isSaving ? null : const Icon(Icons.check),
+            icon: _isSaving
+                ? null
+                : Icon(widget.isEditing ? Icons.save_outlined : Icons.check),
           ),
         ),
       ),
@@ -315,20 +346,39 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
     setState(() => _isSaving = true);
 
     try {
-      await addSubjectToSemester(
-        ref,
-        subjectName: _nameController.text.trim(),
-        semesterId: selectedSemester!.id,
-        credits: credits.toDouble(),
-        grade: selectedGrade!.grade,
-        gradePoint: selectedGrade!.gradePoint,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Subject added successfully')),
+      if (widget.isEditing) {
+        await updateSubjectInSemester(
+          ref,
+          attempt: widget.attemptToEdit!,
+          subjectName: _nameController.text.trim(),
+          credits: credits.toDouble(),
+          grade: selectedGrade!.grade,
+          gradePoint: selectedGrade!.gradePoint,
+          semesterId: selectedSemester?.id,
         );
-        Navigator.of(context).pop();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Subject updated successfully')),
+          );
+          Navigator.of(context).pop();
+        }
+      } else {
+        await addSubjectToSemester(
+          ref,
+          subjectName: _nameController.text.trim(),
+          semesterId: selectedSemester!.id,
+          credits: credits.toDouble(),
+          grade: selectedGrade!.grade,
+          gradePoint: selectedGrade!.gradePoint,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Subject added successfully')),
+          );
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -348,18 +398,18 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
         height: AppDimensions.heroCardHeight,
         width: double.infinity,
         decoration: AppDecorations.heroCard,
-        child: const Column(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.school,
+              widget.isEditing ? Icons.edit_note : Icons.school,
               color: AppColors.onPrimary,
               size: AppDimensions.iconLg,
             ),
-            SizedBox(height: AppDimensions.sm),
+            const SizedBox(height: AppDimensions.sm),
             Text(
-              'NEW COURSE ENTRY',
-              style: TextStyle(
+              widget.isEditing ? 'EDIT COURSE ENTRY' : 'NEW COURSE ENTRY',
+              style: const TextStyle(
                 fontFamily: AppTextStyles.fontFamily,
                 color: AppColors.onPrimary,
                 fontWeight: FontWeight.bold,

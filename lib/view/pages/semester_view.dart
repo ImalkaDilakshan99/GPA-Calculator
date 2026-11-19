@@ -293,6 +293,22 @@ class SemesterView extends ConsumerWidget {
             ),
 
             IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              color: AppColors.textSecondary,
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    fullscreenDialog: true,
+                    builder: (context) => AddSubject(
+                      initialSemesterId: semester.id,
+                      attemptToEdit: attempt,
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            IconButton(
               icon: const Icon(Icons.delete_outline),
               color: AppColors.textSecondary,
               onPressed: () async {
