@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
-import 'package:gpa_calculator/models/semester_model.dart';
+import 'package:gpa_calculator/domain/entities/semester_entity.dart';
 import 'package:gpa_calculator/view/pages/components/gpa_circular_progressbar.dart';
 import 'package:gpa_calculator/view/pages/semester_add.dart';
 import 'package:gpa_calculator/view/pages/semester_view.dart';
-import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
+import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class Dashboard extends ConsumerWidget {
   const Dashboard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final semesters = ref.watch(semesterProvider);
-    final notifier = ref.read(semesterProvider.notifier);
-    final cumulativeGPA = notifier.calculateCumulativeGPA();
-
-    // Calculate totals from all semesters
-    const totalCredits = 0.0; // TODO: aggregate when courses are persisted per semester
-    const totalGradePoints = 0.0;
+    final semestersAsync = ref.watch(semestersStreamProvider);
+    final cumulativeResult = ref.watch(cumulativeGpaProvider);
+    final cumulativeGPA = cumulativeResult.gpa;
+    final totalCredits = cumulativeResult.totalCredits;
+    final totalGradePoints = cumulativeResult.qualityPoints;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -76,66 +74,88 @@ class Dashboard extends ConsumerWidget {
             child: SizedBox(height: AppDimensions.xxl),
           ),
 
+          // Semester History header
           SliverToBoxAdapter(
-            child: Padding(
-              padding: AppDimensions.paddingHorizontalLg,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Semester History',
-                    style: AppTextStyles.headlineMedium,
-                  ),
-                  const SizedBox(width: AppDimensions.lg),
-                  Text(
-                    semesters.isEmpty
-                        ? ''
-                        : '${semesters.length} semester${semesters.length == 1 ? '' : 's'}',
-                    style: const TextStyle(
-                      fontFamily: AppTextStyles.fontFamily,
-                      fontSize: 14,
-                      color: AppColors.secondary,
+            child: semestersAsync.when(
+              data: (semesters) => Padding(
+                padding: AppDimensions.paddingHorizontalLg,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Semester History',
+                      style: AppTextStyles.headlineMedium,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: AppDimensions.lg),
+                    Text(
+                      semesters.isEmpty
+                          ? ''
+                          : '${semesters.length} semester${semesters.length == 1 ? '' : 's'}',
+                      style: const TextStyle(
+                        fontFamily: AppTextStyles.fontFamily,
+                        fontSize: 14,
+                        color: AppColors.secondary,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              loading: () => const Padding(
+                padding: AppDimensions.paddingHorizontalLg,
+                child: Text('Semester History', style: AppTextStyles.headlineMedium),
+              ),
+              error: (err, stack) => const SizedBox.shrink(),
             ),
           ),
 
-          if (semesters.isEmpty)
-            const SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: AppDimensions.huge),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.school_outlined,
-                        size: AppDimensions.iconXl,
-                        color: AppColors.neutral,
+          // Semester list
+          semestersAsync.when(
+            data: (semesters) {
+              if (semesters.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: AppDimensions.huge),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.school_outlined,
+                            size: AppDimensions.iconXl,
+                            color: AppColors.neutral,
+                          ),
+                          SizedBox(height: AppDimensions.md),
+                          Text(
+                            'No semesters yet.\nTap + to add your first semester.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontFamily: AppTextStyles.fontFamily,
+                              fontSize: 14,
+                              color: AppColors.neutral,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: AppDimensions.md),
-                      Text(
-                        'No semesters yet.\nTap + to add your first semester.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: AppTextStyles.fontFamily,
-                          fontSize: 14,
-                          color: AppColors.neutral,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+                );
+              }
+              return SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _semesterCard(context, ref, semesters[index]),
+                  childCount: semesters.length,
                 ),
-              ),
-            )
-          else
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _semesterCard(context, semesters[index]),
-                childCount: semesters.length,
-              ),
+              );
+            },
+            loading: () => const SliverToBoxAdapter(
+              child: Center(child: Padding(
+                padding: EdgeInsets.all(AppDimensions.huge),
+                child: CircularProgressIndicator(),
+              )),
             ),
+            error: (err, _) => SliverToBoxAdapter(
+              child: Center(child: Text('Error: $err')),
+            ),
+          ),
         ],
       ),
 
@@ -174,7 +194,11 @@ class Dashboard extends ConsumerWidget {
     );
   }
 
-  Widget _semesterCard(BuildContext context, SemesterModel semester) {
+  Widget _semesterCard(BuildContext context, WidgetRef ref, SemesterEntity semester) {
+    // Calculate this semester's GPA from its subjects
+    final gpaResult = ref.watch(semesterGpaProvider(semester.subjects));
+    final semesterGpa = gpaResult.gpa;
+
     return Padding(
       padding: AppDimensions.paddingScreen,
       child: Material(
@@ -212,7 +236,7 @@ class Dashboard extends ConsumerWidget {
                   ),
 
                   Text(
-                    semester.year,
+                    '${semester.academicYear} • Semester ${semester.semesterNumber}',
                     style: AppTextStyles.bodyMedium,
                   ),
 
@@ -228,7 +252,7 @@ class Dashboard extends ConsumerWidget {
                             style: AppTextStyles.bodyMedium,
                           ),
                           Text(
-                            semester.gpa.toStringAsFixed(2),
+                            semesterGpa.toStringAsFixed(2),
                             style: AppTextStyles.displaySmall,
                           ),
                         ],

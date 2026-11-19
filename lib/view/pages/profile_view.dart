@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
-import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
+import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class ProfileView extends ConsumerWidget {
   const ProfileView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final semesters = ref.watch(semesterProvider);
-    final cumulativeGpa = ref.watch(semesterProvider.notifier).calculateCumulativeGPA();
-    final courses = ref.watch(gpaProvider);
-    final totalCredits = courses.fold<double>(0.0, (sum, c) => sum + c.credits);
+    final semestersAsync = ref.watch(semestersStreamProvider);
+    final cumulativeResult = ref.watch(cumulativeGpaProvider);
+    final cumulativeGpa = cumulativeResult.gpa;
+    final totalCredits = cumulativeResult.totalCredits;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -24,37 +24,120 @@ class ProfileView extends ConsumerWidget {
         padding: AppDimensions.paddingScreenAll,
         child: Column(
           children: [
-            // User Avatar & Name Header
+            // User Avatar & Name Header (matches reference design)
             Center(
               child: Column(
                 children: [
-                  Container(
-                    width: 90,
-                    height: 90,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.secondary, width: 2),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 52,
-                        color: AppColors.onPrimary,
-                      ),
+                  SizedBox(
+                    width: 124,
+                    height: 124,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Avatar with glowing neon ring
+                        Container(
+                          width: 114,
+                          height: 114,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: const Color(0xFF6B42FF),
+                              width: 3.5,
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x666B42FF),
+                                blurRadius: 24,
+                                spreadRadius: 3,
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/profile_avatar.png',
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: AppColors.surfaceVariant,
+                                  child: const Icon(
+                                    Icons.person_rounded,
+                                    size: 56,
+                                    color: AppColors.onPrimary,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+
+                        // Edit Button Badge at bottom-right
+                        Positioned(
+                          bottom: 2,
+                          right: 2,
+                          child: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1E2E),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: const Color(0xFF2E2E42),
+                                width: 1.5,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x40000000),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.edit,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: AppDimensions.md),
+
+                  const SizedBox(height: AppDimensions.lg),
+
+                  // Name
                   const Text(
-                    'Student User',
-                    style: AppTextStyles.headlineLarge,
-                  ),
-                  const SizedBox(height: AppDimensions.xxs),
-                  const Text(
-                    'Bachelor of Science (Computer Science)',
+                    'Alex Rivera',
                     style: TextStyle(
                       fontFamily: AppTextStyles.fontFamily,
-                      fontSize: 14,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textWhite,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+
+                  const SizedBox(height: AppDimensions.xxs),
+
+                  // Major
+                  const Text(
+                    'Computer Science Major',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF3E64FF),
+                    ),
+                  ),
+
+                  const SizedBox(height: AppDimensions.xs),
+
+                  // University & Class
+                  const Text(
+                    'Stanford University • Class of 2025',
+                    style: TextStyle(
+                      fontFamily: AppTextStyles.fontFamily,
+                      fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -76,10 +159,22 @@ class ProfileView extends ConsumerWidget {
                 ),
                 const SizedBox(width: AppDimensions.md),
                 Expanded(
-                  child: _metricTile(
-                    label: 'Semesters',
-                    value: semesters.length.toString(),
-                    color: AppColors.secondary,
+                  child: semestersAsync.when(
+                    data: (semesters) => _metricTile(
+                      label: 'Semesters',
+                      value: semesters.length.toString(),
+                      color: AppColors.secondary,
+                    ),
+                    loading: () => _metricTile(
+                      label: 'Semesters',
+                      value: '...',
+                      color: AppColors.secondary,
+                    ),
+                    error: (err, stack) => _metricTile(
+                      label: 'Semesters',
+                      value: '0',
+                      color: AppColors.secondary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppDimensions.md),
@@ -214,4 +309,3 @@ class ProfileView extends ConsumerWidget {
     );
   }
 }
-

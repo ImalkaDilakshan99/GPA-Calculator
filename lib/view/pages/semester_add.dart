@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
-import 'package:gpa_calculator/models/semester_model.dart';
-import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
-
-enum SemesterNumber { sem1, sem2 }
+import 'package:gpa_calculator/domain/entities/semester_entity.dart';
+import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class SemesterAdd extends ConsumerStatefulWidget {
   const SemesterAdd({super.key});
@@ -17,7 +15,8 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _yearController = TextEditingController();
-  SemesterNumber? _selectedSemester;
+  int _semesterNumber = 1;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -55,7 +54,7 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
                 },
                 decoration: const InputDecoration(
                   labelText: 'Semester Name',
-                  hintText: 'e.g. Fall 2024 or sem1 in yr2',
+                  hintText: 'e.g. Fall 2024 or Year 2 Sem 1',
                 ),
               ),
 
@@ -63,30 +62,97 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
 
               TextFormField(
                 controller: _yearController,
+                keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter academic year';
+                  }
+                  if (int.tryParse(value.trim()) == null) {
+                    return 'Please enter a valid year (e.g. 2024)';
                   }
                   return null;
                 },
                 decoration: const InputDecoration(
                   labelText: 'Academic Year',
-                  hintText: 'e.g. 2024/2025',
+                  hintText: 'e.g. 2024',
+                ),
+              ),
+
+              const SizedBox(height: AppDimensions.lg),
+
+              // Semester number selector
+              Container(
+                decoration: AppDecorations.counterBox,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.sm,
+                  vertical: AppDimensions.xs,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      iconSize: AppDimensions.iconXl,
+                      icon: const Icon(Icons.remove),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.onPrimary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          if (_semesterNumber > 1) _semesterNumber--;
+                        });
+                      },
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          _semesterNumber.toString(),
+                          style: AppTextStyles.displayLarge,
+                        ),
+                        const Text(
+                          'Semester Number',
+                          style: AppTextStyles.labelMedium,
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      iconSize: AppDimensions.iconXl,
+                      icon: const Icon(Icons.add),
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.onPrimary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          if (_semesterNumber < 12) _semesterNumber++;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ),
 
               const SizedBox(height: AppDimensions.xxl),
 
               ElevatedButton(
-                onPressed: _saveSemester,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.save_outlined),
-                    SizedBox(width: AppDimensions.sm),
-                    Text('Save Semester'),
-                  ],
-                ),
+                onPressed: _isSaving ? null : _saveSemester,
+                child: _isSaving
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.onPrimary,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.save_outlined),
+                          SizedBox(width: AppDimensions.sm),
+                          Text('Save Semester'),
+                        ],
+                      ),
               ),
             ],
           ),
@@ -95,28 +161,39 @@ class _SemesterAddState extends ConsumerState<SemesterAdd> {
     );
   }
 
-  void _saveSemester() {
+  Future<void> _saveSemester() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final enteredName = _nameController.text.trim();
-    final semLabel = _selectedSemester == SemesterNumber.sem1 ? 'Semester 1' : 'Semester 2';
-    final fullName = enteredName.toLowerCase().contains('sem')
-        ? enteredName
-        : '$enteredName ($semLabel)';
+    setState(() => _isSaving = true);
 
-    final semester = SemesterModel(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
-      name: fullName,
-      year: _yearController.text.trim(),
-    );
+    try {
+      final now = DateTime.now();
+      final semester = SemesterEntity(
+        id: 0, // auto-increment
+        name: _nameController.text.trim(),
+        academicYear: int.parse(_yearController.text.trim()),
+        semesterNumber: _semesterNumber,
+        createdAt: now,
+        updatedAt: now,
+      );
 
-    ref.read(semesterProvider.notifier).addSemester(semester);
+      await createSemester(ref, semester);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Semester added successfully')),
-    );
-
-    Navigator.of(context).pop();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Semester added successfully')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving semester: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   Widget _heroCard() {

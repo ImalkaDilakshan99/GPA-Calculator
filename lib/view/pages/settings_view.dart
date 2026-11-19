@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
-import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
+import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class SettingsView extends ConsumerWidget {
   const SettingsView({super.key});
@@ -150,7 +150,7 @@ class SettingsView extends ConsumerWidget {
                   _settingTile(
                     icon: Icons.architecture,
                     title: 'Architecture',
-                    subtitle: 'MVVM with Riverpod & Centralized Theme',
+                    subtitle: 'MVVM with Riverpod & Drift (SQLite)',
                   ),
                 ],
               ),
@@ -277,7 +277,7 @@ class SettingsView extends ConsumerWidget {
   void _confirmResetDialog(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           backgroundColor: AppColors.surface,
           shape: const RoundedRectangleBorder(
@@ -288,12 +288,12 @@ class SettingsView extends ConsumerWidget {
             style: AppTextStyles.headlineSmall,
           ),
           content: const Text(
-            'This will permanently delete all added semesters and subject entries.',
+            'This will permanently delete all added semesters and subject entries from the database.',
             style: AppTextStyles.bodyMedium,
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text(
                 'Cancel',
                 style: TextStyle(color: AppColors.textSecondary),
@@ -305,16 +305,16 @@ class SettingsView extends ConsumerWidget {
                 foregroundColor: AppColors.onError,
                 minimumSize: const Size(80, 36),
               ),
-              onPressed: () {
-                // Clear all semesters
-                final semesters = ref.read(semesterProvider);
-                for (final s in semesters) {
-                  ref.read(semesterProvider.notifier).removeSemester(s.id);
+              onPressed: () async {
+                await deleteAllSemesters(ref);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
                 }
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('All data has been reset')),
-                );
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('All data has been reset')),
+                  );
+                }
               },
               child: const Text('Reset'),
             ),

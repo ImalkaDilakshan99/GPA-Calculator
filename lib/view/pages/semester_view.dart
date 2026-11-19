@@ -1,32 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
-import 'package:gpa_calculator/models/course_model.dart';
-import 'package:gpa_calculator/models/semester_model.dart';
+import 'package:gpa_calculator/domain/entities/semester_entity.dart';
+import 'package:gpa_calculator/domain/entities/semester_subject_entity.dart';
 import 'package:gpa_calculator/view/pages/add_subject.dart';
-import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
+import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
-class SemesterView extends ConsumerStatefulWidget {
-  final SemesterModel semester;
+class SemesterView extends ConsumerWidget {
+  final SemesterEntity semester;
 
   const SemesterView({super.key, required this.semester});
 
   @override
-  ConsumerState<SemesterView> createState() => _SemesterViewState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watch subjects for this semester reactively from the database
+    final subjectsAsync = ref.watch(semesterSubjectsStreamProvider(semester.id));
 
-// Backwards compatibility alias
-typedef Semester = SemesterView;
+    return subjectsAsync.when(
+      data: (subjects) => _buildContent(context, ref, subjects),
+      loading: () => Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          title: Text(semester.name, style: AppTextStyles.headlineMedium),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      ),
+      error: (err, _) => Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.background,
+          title: Text(semester.name, style: AppTextStyles.headlineMedium),
+        ),
+        body: Center(child: Text('Error: $err')),
+      ),
+    );
+  }
 
-class _SemesterViewState extends ConsumerState<SemesterView> {
-  @override
-  Widget build(BuildContext context) {
-    // Watch courses to reactively update the subject list, credit count, and GPA
-    final courses = ref.watch(gpaProvider);
-    final totalCredits = courses.fold<double>(0.0, (sum, c) => sum + c.credits);
-    final currentGpa = courses.isNotEmpty
-        ? ref.watch(gpaProvider.notifier).calculateGPA()
-        : widget.semester.gpa;
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    List<SemesterSubjectEntity> subjects,
+  ) {
+    final gpaResult = ref.watch(semesterGpaProvider(subjects));
+    final totalCredits = gpaResult.totalCredits;
+    final currentGpa = gpaResult.gpa;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -41,7 +59,7 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
               onPressed: () => Navigator.of(context).pop(),
             ),
             title: Text(
-              widget.semester.name,
+              semester.name,
               style: AppTextStyles.headlineMedium,
             ),
           ),
@@ -56,13 +74,11 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    if (widget.semester.year.isNotEmpty) ...[
-                      Text(
-                        widget.semester.year,
-                        style: AppTextStyles.bodyMedium,
-                      ),
-                      const SizedBox(height: AppDimensions.xs),
-                    ],
+                    Text(
+                      '${semester.academicYear} • Semester ${semester.semesterNumber}',
+                      style: AppTextStyles.bodyMedium,
+                    ),
+                    const SizedBox(height: AppDimensions.xs),
                     const Text(
                       'Semester GPA',
                       style: AppTextStyles.titleMedium,
@@ -93,11 +109,11 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
                     Row(
                       children: [
                         Expanded(
-                          child: infoCard('Credits', totalCredits.toStringAsFixed(1)),
+                          child: _infoCard('Credits', totalCredits.toStringAsFixed(1)),
                         ),
                         const SizedBox(width: AppDimensions.md),
                         Expanded(
-                          child: infoCard('Subjects', courses.length.toString()),
+                          child: _infoCard('Subjects', subjects.length.toString()),
                         ),
                       ],
                     ),
@@ -119,9 +135,9 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
                     style: AppTextStyles.headlineSmall,
                   ),
                   Text(
-                    courses.isEmpty
+                    subjects.isEmpty
                         ? '0 subjects'
-                        : '${courses.length} subject${courses.length == 1 ? '' : 's'}',
+                        : '${subjects.length} subject${subjects.length == 1 ? '' : 's'}',
                     style: const TextStyle(
                       fontFamily: AppTextStyles.fontFamily,
                       fontSize: 14,
@@ -134,7 +150,7 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
           ),
 
           // List Section
-          if (courses.isEmpty)
+          if (subjects.isEmpty)
             const SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: AppDimensions.huge),
@@ -164,8 +180,8 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
           else
             SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) => subject(courses[index]),
-                childCount: courses.length,
+                (context, index) => _subjectCard(context, ref, subjects[index]),
+                childCount: subjects.length,
               ),
             ),
 
@@ -185,7 +201,7 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
             Navigator.of(context).push(
               MaterialPageRoute(
                 fullscreenDialog: true,
-                builder: (context) => AddSubject(initialSemester: widget.semester),
+                builder: (context) => AddSubject(initialSemesterId: semester.id),
               ),
             );
           },
@@ -199,7 +215,7 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
   }
 
   // Helper for info boxes
-  Widget infoCard(String title, String value) {
+  Widget _infoCard(String title, String value) {
     return Container(
       padding: AppDimensions.paddingAllSm,
       decoration: AppDecorations.statTile,
@@ -233,8 +249,11 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
   }
 
   // Subject item widget
-  Widget subject(Course course) {
-    final gradeColor = _getGradeColor(course.grade);
+  Widget _subjectCard(BuildContext context, WidgetRef ref, SemesterSubjectEntity attempt) {
+    final gradeName = attempt.grade ?? '?';
+    final gradeColor = _getGradeColor(gradeName);
+    final subjectName = attempt.subject?.subjectName ?? 'Unnamed Subject';
+
     return Padding(
       padding: AppDimensions.paddingScreen,
       child: Container(
@@ -248,7 +267,7 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
               alignment: Alignment.center,
               decoration: AppDecorations.gradeBadgeRounded(gradeColor),
               child: Text(
-                course.grade,
+                gradeName,
                 style: const TextStyle(
                   fontFamily: AppTextStyles.fontFamily,
                   color: AppColors.onPrimary,
@@ -262,11 +281,11 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    course.name.isEmpty ? 'Unnamed Subject' : course.name,
+                    subjectName,
                     style: AppTextStyles.titleMedium,
                   ),
                   Text(
-                    '${course.credits.toStringAsFixed(0)} Credits',
+                    '${attempt.credits.toStringAsFixed(0)} Credits',
                     style: AppTextStyles.bodySmall,
                   ),
                 ],
@@ -276,14 +295,8 @@ class _SemesterViewState extends ConsumerState<SemesterView> {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               color: AppColors.textSecondary,
-              onPressed: () {
-                ref.read(gpaProvider.notifier).removeCourse(course.id);
-                // Also update the semester's GPA after deletion
-                final updatedGpa = ref.read(gpaProvider.notifier).calculateGPA();
-                ref.read(semesterProvider.notifier).updateSemester(
-                  widget.semester.id,
-                  gpa: updatedGpa,
-                );
+              onPressed: () async {
+                await deleteSubjectAttempt(ref, attempt);
               },
             ),
           ],

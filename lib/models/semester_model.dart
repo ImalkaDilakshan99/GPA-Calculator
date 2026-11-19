@@ -3,12 +3,14 @@ class SemesterModel {
   final String name;
   final String year;
   final double gpa;
+  final int subjects;
 
   const SemesterModel({
     required this.id,
     required this.name,
     required this.year,
     this.gpa = 0,
+    this.subjects = 0,
   });
 
   SemesterModel copyWith({
@@ -16,12 +18,14 @@ class SemesterModel {
     String? name,
     String? year,
     double? gpa,
+    int? subjects,
   }) {
     return SemesterModel(
       id: id ?? this.id,
       name: name ?? this.name,
       year: year ?? this.year,
       gpa: gpa ?? this.gpa,
+      subjects: subjects ?? this.subjects,
     );
   }
 

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
+import 'package:gpa_calculator/domain/entities/semester_entity.dart';
 import 'package:gpa_calculator/models/grade_model.dart';
-import 'package:gpa_calculator/models/semester_model.dart';
-import 'package:gpa_calculator/viewModels/gpa_view_model.dart';
+import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class AddSubject extends ConsumerStatefulWidget {
-  final SemesterModel? initialSemester;
+  final int? initialSemesterId;
 
-  const AddSubject({super.key, this.initialSemester});
+  const AddSubject({super.key, this.initialSemesterId});
 
   @override
   ConsumerState<AddSubject> createState() => _AddSubjectState();
@@ -22,13 +22,8 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
   static const int _maxCredits = 12;
 
   GradeModel? selectedGrade;
-  SemesterModel? selectedSemester;
-
-  @override
-  void initState() {
-    super.initState();
-    selectedSemester = widget.initialSemester;
-  }
+  SemesterEntity? selectedSemester;
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -38,7 +33,22 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
 
   @override
   Widget build(BuildContext context) {
-    final semesters = ref.watch(semesterProvider);
+    final semestersAsync = ref.watch(semestersStreamProvider);
+
+    // Pre-select semester when semesters load and we have an initial ID
+    semestersAsync.whenData((semesters) {
+      if (selectedSemester == null && widget.initialSemesterId != null) {
+        final match = semesters.where((s) => s.id == widget.initialSemesterId);
+        if (match.isNotEmpty) {
+          // Use addPostFrameCallback to avoid setState during build
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && selectedSemester == null) {
+              setState(() => selectedSemester = match.first);
+            }
+          });
+        }
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(
@@ -213,40 +223,47 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                     // Select the semester
                     const SizedBox(height: AppDimensions.lg),
 
-                    DropdownButtonFormField<SemesterModel>(
-                      initialValue: selectedSemester,
-                      dropdownColor: AppColors.surfaceVariant,
-                      hint: const Text('Select Semester'),
-                      items: semesters.map((semester) {
-                        return DropdownMenuItem<SemesterModel>(
-                          value: semester,
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.calendar_today,
-                                color: AppColors.secondary,
-                                size: AppDimensions.iconSm,
+                    semestersAsync.when(
+                      data: (semesters) {
+                        return DropdownButtonFormField<SemesterEntity>(
+                          key: ValueKey(selectedSemester?.id),
+                          initialValue: selectedSemester,
+                          dropdownColor: AppColors.surfaceVariant,
+                          hint: const Text('Select Semester'),
+                          items: semesters.map((semester) {
+                            return DropdownMenuItem<SemesterEntity>(
+                              value: semester,
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.calendar_today,
+                                    color: AppColors.secondary,
+                                    size: AppDimensions.iconSm,
+                                  ),
+                                  const SizedBox(width: AppDimensions.md),
+                                  Text(
+                                    '${semester.name} (${semester.academicYear})',
+                                    style: AppTextStyles.bodyLarge,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: AppDimensions.md),
-                              Text(
-                                semester.name,
-                                style: AppTextStyles.bodyLarge,
-                              ),
-                            ],
-                          ),
+                            );
+                          }).toList(),
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Please select a semester';
+                            }
+                            return null;
+                          },
+                          onChanged: (SemesterEntity? newValue) {
+                            setState(() {
+                              selectedSemester = newValue;
+                            });
+                          },
                         );
-                      }).toList(),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Please select a semester';
-                        }
-                        return null;
                       },
-                      onChanged: (SemesterModel? newValue) {
-                        setState(() {
-                          selectedSemester = newValue;
-                        });
-                      },
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (err, _) => Text('Error loading semesters: $err'),
                     ),
 
                     const SizedBox(height: AppDimensions.xxxl),
@@ -262,21 +279,30 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
         child: SizedBox(
           width: double.infinity,
           child: FloatingActionButton.extended(
-            onPressed: _saveSubject,
-            label: const Text(
-              'Save Subject',
-              style: AppTextStyles.buttonSmall,
-            ),
+            onPressed: _isSaving ? null : _saveSubject,
+            label: _isSaving
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.onPrimary,
+                    ),
+                  )
+                : const Text(
+                    'Save Subject',
+                    style: AppTextStyles.buttonSmall,
+                  ),
             backgroundColor: AppColors.primary,
             foregroundColor: AppColors.onPrimary,
-            icon: const Icon(Icons.check),
+            icon: _isSaving ? null : const Icon(Icons.check),
           ),
         ),
       ),
     );
   }
 
-  void _saveSubject() {
+  Future<void> _saveSubject() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (credits <= 0) {
@@ -286,32 +312,33 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
       return;
     }
 
-    // Add the course to the ViewModel
-    final notifier = ref.read(gpaProvider.notifier);
-    notifier.addCourse();
-    final courses = ref.read(gpaProvider);
-    final lastCourse = courses.last;
-    notifier.updateCourse(
-      lastCourse.id,
-      name: _nameController.text.trim(),
-      credits: credits.toDouble(),
-      grade: selectedGrade!.grade,
-    );
+    setState(() => _isSaving = true);
 
-    // Update the semester's GPA in semesterProvider if a semester is selected
-    if (selectedSemester != null) {
-      final updatedGpa = notifier.calculateGPA();
-      ref.read(semesterProvider.notifier).updateSemester(
-        selectedSemester!.id,
-        gpa: updatedGpa,
+    try {
+      await addSubjectToSemester(
+        ref,
+        subjectName: _nameController.text.trim(),
+        semesterId: selectedSemester!.id,
+        credits: credits.toDouble(),
+        grade: selectedGrade!.grade,
+        gradePoint: selectedGrade!.gradePoint,
       );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Subject added successfully')),
+        );
+        Navigator.of(context).pop();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving subject: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Subject added successfully')),
-    );
-
-    Navigator.of(context).pop();
   }
 
   Widget _heroBox() {
