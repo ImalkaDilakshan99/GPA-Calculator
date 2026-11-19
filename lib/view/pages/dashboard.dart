@@ -13,7 +13,8 @@ class Dashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final semestersAsync = ref.watch(semestersStreamProvider);
+    final semestersAsync = ref.watch(sortedSemestersProvider);
+    final currentSort = ref.watch(semesterSortProvider);
     final cumulativeResult = ref.watch(cumulativeGpaProvider);
     final profileAsync = ref.watch(studentProfileStreamProvider);
 
@@ -163,17 +164,73 @@ class Dashboard extends ConsumerWidget {
                         color: Colors.white,
                       ),
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        // "View All" action
+                    PopupMenuButton<SemesterSortOption>(
+                      initialValue: currentSort,
+                      tooltip: 'Sort semesters',
+                      color: const Color(0xFF1B1E30),
+                      elevation: 8,
+                      offset: const Offset(0, 36),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: const BorderSide(color: Color(0xFF262B42), width: 1),
+                      ),
+                      onSelected: (option) {
+                        ref.read(semesterSortProvider.notifier).setSortOption(option);
                       },
-                      child: const Text(
-                        'View All',
-                        style: TextStyle(
-                          fontFamily: 'Inter',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF3861FB),
+                      itemBuilder: (context) => [
+                        _buildSortMenuItem(
+                          option: SemesterSortOption.newestFirst,
+                          currentSort: currentSort,
+                          icon: Icons.calendar_today_outlined,
+                        ),
+                        _buildSortMenuItem(
+                          option: SemesterSortOption.oldestFirst,
+                          currentSort: currentSort,
+                          icon: Icons.history_rounded,
+                        ),
+                        _buildSortMenuItem(
+                          option: SemesterSortOption.gpaHighToLow,
+                          currentSort: currentSort,
+                          icon: Icons.trending_up_rounded,
+                        ),
+                        _buildSortMenuItem(
+                          option: SemesterSortOption.gpaLowToHigh,
+                          currentSort: currentSort,
+                          icon: Icons.trending_down_rounded,
+                        ),
+                      ],
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B1E30),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF262B42), width: 1),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.sort_rounded,
+                              size: 16,
+                              color: Color(0xFF3861FB),
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Sort by',
+                              style: TextStyle(
+                                fontFamily: 'Inter',
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF3861FB),
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Icon(
+                              Icons.arrow_drop_down_rounded,
+                              size: 18,
+                              color: Color(0xFF3861FB),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -496,6 +553,45 @@ class Dashboard extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Builds an individual item in the sort popup menu.
+  PopupMenuItem<SemesterSortOption> _buildSortMenuItem({
+    required SemesterSortOption option,
+    required SemesterSortOption currentSort,
+    required IconData icon,
+  }) {
+    final isSelected = option == currentSort;
+    return PopupMenuItem<SemesterSortOption>(
+      value: option,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: isSelected ? const Color(0xFF3861FB) : const Color(0xFF8E9BAE),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              option.label,
+              style: TextStyle(
+                fontFamily: 'Inter',
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                color: isSelected ? const Color(0xFF3861FB) : Colors.white,
+              ),
+            ),
+          ),
+          if (isSelected)
+            const Icon(
+              Icons.check_rounded,
+              size: 18,
+              color: Color(0xFF3861FB),
+            ),
+        ],
       ),
     );
   }

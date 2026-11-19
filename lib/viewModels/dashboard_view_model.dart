@@ -28,6 +28,77 @@ final semestersStreamProvider = StreamProvider<List<SemesterEntity>>((ref) {
   return repo.watchAllSemesters();
 });
 
+// ── Semester Sorting Options & Providers ─────────────────────────────
+enum SemesterSortOption {
+  newestFirst('Newest first'),
+  oldestFirst('Oldest first'),
+  gpaHighToLow('GPA: High to Low'),
+  gpaLowToHigh('GPA: Low to High');
+
+  final String label;
+  const SemesterSortOption(this.label);
+}
+
+class SemesterSortNotifier extends Notifier<SemesterSortOption> {
+  @override
+  SemesterSortOption build() => SemesterSortOption.newestFirst;
+
+  void setSortOption(SemesterSortOption option) {
+    state = option;
+  }
+}
+
+final semesterSortProvider =
+    NotifierProvider<SemesterSortNotifier, SemesterSortOption>(
+  SemesterSortNotifier.new,
+);
+
+final sortedSemestersProvider =
+    Provider<AsyncValue<List<SemesterEntity>>>((ref) {
+  final semestersAsync = ref.watch(semestersStreamProvider);
+  final sortOption = ref.watch(semesterSortProvider);
+  final service = ref.watch(gpaCalculatorServiceProvider);
+
+  return semestersAsync.whenData((semesters) {
+    final list = List<SemesterEntity>.from(semesters);
+    switch (sortOption) {
+      case SemesterSortOption.newestFirst:
+        list.sort((a, b) {
+          final yearCmp = b.academicYear.compareTo(a.academicYear);
+          if (yearCmp != 0) return yearCmp;
+          final semCmp = b.semesterNumber.compareTo(a.semesterNumber);
+          if (semCmp != 0) return semCmp;
+          return b.id.compareTo(a.id);
+        });
+      case SemesterSortOption.oldestFirst:
+        list.sort((a, b) {
+          final yearCmp = a.academicYear.compareTo(b.academicYear);
+          if (yearCmp != 0) return yearCmp;
+          final semCmp = a.semesterNumber.compareTo(b.semesterNumber);
+          if (semCmp != 0) return semCmp;
+          return a.id.compareTo(b.id);
+        });
+      case SemesterSortOption.gpaHighToLow:
+        list.sort((a, b) {
+          final gpaA = service.calculateSemesterGpa(a.subjects).gpa;
+          final gpaB = service.calculateSemesterGpa(b.subjects).gpa;
+          final gpaCmp = gpaB.compareTo(gpaA);
+          if (gpaCmp != 0) return gpaCmp;
+          return b.academicYear.compareTo(a.academicYear);
+        });
+      case SemesterSortOption.gpaLowToHigh:
+        list.sort((a, b) {
+          final gpaA = service.calculateSemesterGpa(a.subjects).gpa;
+          final gpaB = service.calculateSemesterGpa(b.subjects).gpa;
+          final gpaCmp = gpaA.compareTo(gpaB);
+          if (gpaCmp != 0) return gpaCmp;
+          return a.academicYear.compareTo(b.academicYear);
+        });
+    }
+    return list;
+  });
+});
+
 // ── Semester subjects for a specific semester ────────────────────────
 final semesterSubjectsStreamProvider =
     StreamProvider.family<List<SemesterSubjectEntity>, int>((ref, semesterId) {

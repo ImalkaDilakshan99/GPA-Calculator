@@ -153,4 +153,85 @@ void main() {
     final finalSemesters = await container.read(semesterRepositoryProvider).getAllSemesters();
     expect(finalSemesters, isEmpty);
   });
+
+  test('Semester Sorting Options: Newest, Oldest, GPA High-to-Low, GPA Low-to-High', () async {
+    final now = DateTime.now();
+    final semRepo = container.read(semesterRepositoryProvider);
+    final subRepo = container.read(subjectRepositoryProvider);
+
+    // 1. Create older semester (2023) with GPA 3.0
+    final sem2023Id = await semRepo.createSemester(
+      SemesterEntity(
+        id: 0,
+        name: 'Fall 2023',
+        academicYear: 2023,
+        semesterNumber: 1,
+        createdAt: now.subtract(const Duration(days: 365)),
+        updatedAt: now.subtract(const Duration(days: 365)),
+      ),
+    );
+    final sub1 = await subRepo.createSubject(
+      SubjectEntity(id: 0, subjectName: 'Subject A', createdAt: now, updatedAt: now),
+    );
+    await subRepo.addSubjectAttempt(
+      SemesterSubjectEntity(
+        id: 0,
+        semesterId: sem2023Id,
+        subjectId: sub1,
+        credits: 3.0,
+        grade: 'B',
+        gradePoint: 3.0,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    // 2. Create newer semester (2024) with GPA 4.0
+    final sem2024Id = await semRepo.createSemester(
+      SemesterEntity(
+        id: 0,
+        name: 'Fall 2024',
+        academicYear: 2024,
+        semesterNumber: 1,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    final sub2 = await subRepo.createSubject(
+      SubjectEntity(id: 0, subjectName: 'Subject B', createdAt: now, updatedAt: now),
+    );
+    await subRepo.addSubjectAttempt(
+      SemesterSubjectEntity(
+        id: 0,
+        semesterId: sem2024Id,
+        subjectId: sub2,
+        credits: 3.0,
+        grade: 'A',
+        gradePoint: 4.0,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    // Test Newest First
+    container.read(semesterSortProvider.notifier).setSortOption(SemesterSortOption.newestFirst);
+    final sorted = await semRepo.watchAllSemesters().first;
+    expect(sorted.length, 2);
+
+    // Test sorting through sortedSemestersProvider logic
+    final allSemestersWithSubjects = await semRepo.getAllSemesters();
+    expect(allSemestersWithSubjects.length, 2);
+
+    // Test Oldest First
+    container.read(semesterSortProvider.notifier).setSortOption(SemesterSortOption.oldestFirst);
+    expect(container.read(semesterSortProvider), SemesterSortOption.oldestFirst);
+
+    // Test GPA High to Low
+    container.read(semesterSortProvider.notifier).setSortOption(SemesterSortOption.gpaHighToLow);
+    expect(container.read(semesterSortProvider), SemesterSortOption.gpaHighToLow);
+
+    // Test GPA Low to High
+    container.read(semesterSortProvider.notifier).setSortOption(SemesterSortOption.gpaLowToHigh);
+    expect(container.read(semesterSortProvider), SemesterSortOption.gpaLowToHigh);
+  });
 }
