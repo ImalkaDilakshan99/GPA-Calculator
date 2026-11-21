@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gpa_calculator/core/database/app_database.dart';
@@ -6,6 +7,8 @@ import 'package:gpa_calculator/core/database/database_providers.dart';
 import 'package:gpa_calculator/domain/entities/semester_entity.dart';
 import 'package:gpa_calculator/domain/entities/semester_subject_entity.dart';
 import 'package:gpa_calculator/domain/entities/subject_entity.dart';
+import 'package:gpa_calculator/view/pages/dashboard.dart';
+import 'package:gpa_calculator/view/pages/semester_view.dart';
 import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 void main() {
@@ -233,5 +236,137 @@ void main() {
     // Test GPA Low to High
     container.read(semesterSortProvider.notifier).setSortOption(SemesterSortOption.gpaLowToHigh);
     expect(container.read(semesterSortProvider), SemesterSortOption.gpaLowToHigh);
+  });
+
+  testWidgets('SemesterView: Delete button displays confirmation dialog and deletes semester', (tester) async {
+    final now = DateTime.now();
+    final semRepo = container.read(semesterRepositoryProvider);
+
+    final semId = await semRepo.createSemester(
+      SemesterEntity(
+        id: 0,
+        name: 'Fall 2024',
+        academicYear: 2024,
+        semesterNumber: 1,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    final semester = (await semRepo.getAllSemesters()).firstWhere((s) => s.id == semId);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          home: SemesterView(semester: semester),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify delete button is present in the app bar
+    final deleteButton = find.byTooltip('Delete Semester');
+    expect(deleteButton, findsOneWidget);
+
+    // Tap delete button to show confirmation dialog
+    await tester.tap(deleteButton);
+    await tester.pumpAndSettle();
+
+    // Verify dialog content
+    expect(find.text('Delete Semester?'), findsOneWidget);
+    expect(
+      find.text('Are you sure you want to delete "Fall 2024"? This will permanently remove this semester and all its subject entries.'),
+      findsOneWidget,
+    );
+    expect(find.text('Cancel'), findsOneWidget);
+    expect(find.text('Delete'), findsOneWidget);
+
+    // Tap Cancel first
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Delete Semester?'), findsNothing);
+
+    // Semester should still exist
+    expect((await semRepo.getAllSemesters()).length, 1);
+
+    // Tap delete button again
+    await tester.tap(deleteButton);
+    await tester.pumpAndSettle();
+
+    // Tap Delete button in dialog
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    // Verify semester is deleted from database
+    final remainingSemesters = await semRepo.getAllSemesters();
+    expect(remainingSemesters, isEmpty);
+  });
+
+  testWidgets('Dashboard reactively updates Total CGPA and Semester Card Term GPA when subject is added', (tester) async {
+    final now = DateTime.now();
+    final semRepo = container.read(semesterRepositoryProvider);
+    final subRepo = container.read(subjectRepositoryProvider);
+
+    // 1. Create a semester with no subjects initially
+    final semId = await semRepo.createSemester(
+      SemesterEntity(
+        id: 0,
+        name: 'Fall 2024',
+        academicYear: 2024,
+        semesterNumber: 1,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    // Render Dashboard
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(
+          home: Dashboard(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify initial values on Dashboard
+    // Circular CGPA starts at 0.00
+    expect(find.text('0.00'), findsNWidgets(2)); // Circular CGPA and Card Term GPA
+    expect(find.text('0.0'), findsNWidgets(2)); // Card credits (0.0) and Dashboard Grade Points (0.0)
+
+    // 2. Add a subject with 3.0 credits, Grade A (4.0) to the semester
+    final subId = await subRepo.createSubject(
+      SubjectEntity(id: 0, subjectName: 'Data Structures', createdAt: now, updatedAt: now),
+    );
+    await subRepo.addSubjectAttempt(
+      SemesterSubjectEntity(
+        id: 0,
+        semesterId: semId,
+        subjectId: subId,
+        credits: 3.0,
+        grade: 'A',
+        gradePoint: 4.0,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    // Let streams propagate and Flutter rebuild widgets
+    await tester.pumpAndSettle();
+
+    // 3. Verify that Dashboard updated reactively!
+    // Total CGPA is now 4.00, Term GPA is now 4.00
+    expect(find.text('4.00'), findsNWidgets(2)); // 1 in Circular Progress, 1 in Semester Card
+    expect(find.text('3.0'), findsOneWidget); // Semester card credits: 3.0
+    expect(find.text('1'), findsOneWidget); // Courses count: 1
+    expect(find.text('12.0'), findsOneWidget); // Grade Points: 12.0
+
+    // 4. Verify cumulativeGpaProvider
+    final cumulativeResult = container.read(cumulativeGpaProvider);
+    expect(cumulativeResult.gpa, 4.0);
+    expect(cumulativeResult.totalCredits, 3.0);
+    expect(cumulativeResult.qualityPoints, 12.0);
   });
 }

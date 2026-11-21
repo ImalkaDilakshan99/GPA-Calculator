@@ -114,6 +114,15 @@ final semesterGpaProvider =
   return service.calculateSemesterGpa(subjects);
 });
 
+// ── Semester GPA reactively derived from semester ID ─────────────────
+final semesterGpaFromIdProvider =
+    Provider.family<GpaCalculationResult, int>((ref, semesterId) {
+  final subjectsAsync = ref.watch(semesterSubjectsStreamProvider(semesterId));
+  final subjects = subjectsAsync.value ?? const [];
+  final service = ref.watch(gpaCalculatorServiceProvider);
+  return service.calculateSemesterGpa(subjects);
+});
+
 // ── Cumulative GPA across all semesters ──────────────────────────────
 final cumulativeGpaProvider = Provider<GpaCalculationResult>((ref) {
   final semestersAsync = ref.watch(semestersStreamProvider);

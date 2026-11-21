@@ -49,13 +49,33 @@ class SemesterEntity {
   }
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is SemesterEntity &&
-          runtimeType == other.runtimeType &&
-          id == other.id;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SemesterEntity || runtimeType != other.runtimeType) return false;
+    if (id != other.id ||
+        name != other.name ||
+        academicYear != other.academicYear ||
+        semesterNumber != other.semesterNumber ||
+        startDate != other.startDate ||
+        endDate != other.endDate) {
+      return false;
+    }
+    if (subjects.length != other.subjects.length) return false;
+    for (int i = 0; i < subjects.length; i++) {
+      if (subjects[i] != other.subjects[i]) return false;
+    }
+    return true;
+  }
 
   @override
-  int get hashCode => id.hashCode;
+  int get hashCode => Object.hash(
+        id,
+        name,
+        academicYear,
+        semesterNumber,
+        startDate,
+        endDate,
+        Object.hashAll(subjects),
+      );
 }
 

@@ -67,5 +67,71 @@ class SemesterDao extends DatabaseAccessor<AppDatabase>
           ..where((tbl) => tbl.semesterId.equals(semesterId)))
         .watch();
   }
+
+  /// Observes all semesters with their subjects and subject definitions reactively.
+  /// Joining all three tables ensures Drift re-evaluates and emits whenever any
+  /// semester, subject attempt, or subject definition changes.
+  Stream<List<TypedResult>> watchSemestersWithSubjects() {
+    final query = select(semesters).join([
+      leftOuterJoin(
+        semesterSubjects,
+        semesterSubjects.semesterId.equalsExp(semesters.id),
+      ),
+      leftOuterJoin(
+        subjects,
+        subjects.id.equalsExp(semesterSubjects.subjectId),
+      ),
+    ]);
+    query.orderBy([
+      OrderingTerm.asc(semesters.academicYear),
+      OrderingTerm.asc(semesters.semesterNumber),
+      OrderingTerm.asc(semesterSubjects.id),
+    ]);
+    return query.watch();
+  }
+
+  /// Retrieves all semesters with their subjects and subject definitions.
+  Future<List<TypedResult>> getAllSemestersWithSubjects() {
+    final query = select(semesters).join([
+      leftOuterJoin(
+        semesterSubjects,
+        semesterSubjects.semesterId.equalsExp(semesters.id),
+      ),
+      leftOuterJoin(
+        subjects,
+        subjects.id.equalsExp(semesterSubjects.subjectId),
+      ),
+    ]);
+    query.orderBy([
+      OrderingTerm.asc(semesters.academicYear),
+      OrderingTerm.asc(semesters.semesterNumber),
+      OrderingTerm.asc(semesterSubjects.id),
+    ]);
+    return query.get();
+  }
+
+  /// Observes all subject attempts with subject details for a given semester reactively.
+  Stream<List<TypedResult>> watchSemesterSubjectsWithDetails(int semesterId) {
+    final query = select(semesterSubjects).join([
+      leftOuterJoin(
+        subjects,
+        subjects.id.equalsExp(semesterSubjects.subjectId),
+      ),
+    ])..where(semesterSubjects.semesterId.equals(semesterId));
+    query.orderBy([OrderingTerm.asc(semesterSubjects.id)]);
+    return query.watch();
+  }
+
+  /// Retrieves all subject attempts with subject details for a given semester.
+  Future<List<TypedResult>> getSemesterSubjectsWithDetails(int semesterId) {
+    final query = select(semesterSubjects).join([
+      leftOuterJoin(
+        subjects,
+        subjects.id.equalsExp(semesterSubjects.subjectId),
+      ),
+    ])..where(semesterSubjects.semesterId.equals(semesterId));
+    query.orderBy([OrderingTerm.asc(semesterSubjects.id)]);
+    return query.get();
+  }
 }
 

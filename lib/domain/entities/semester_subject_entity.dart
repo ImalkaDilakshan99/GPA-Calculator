@@ -53,5 +53,30 @@ class SemesterSubjectEntity {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SemesterSubjectEntity &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          semesterId == other.semesterId &&
+          subjectId == other.subjectId &&
+          attemptNumber == other.attemptNumber &&
+          credits == other.credits &&
+          grade == other.grade &&
+          gradePoint == other.gradePoint &&
+          subject?.subjectName == other.subject?.subjectName;
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        semesterId,
+        subjectId,
+        attemptNumber,
+        credits,
+        grade,
+        gradePoint,
+      );
 }
 

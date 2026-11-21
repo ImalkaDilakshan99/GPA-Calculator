@@ -9,30 +9,19 @@ import 'package:gpa_calculator/domain/repositories/i_semester_repository.dart';
 
 class SemesterRepositoryImpl implements ISemesterRepository {
   final SemesterDao _semesterDao;
-  final SubjectDao _subjectDao;
 
-  SemesterRepositoryImpl(this._semesterDao, this._subjectDao);
+  SemesterRepositoryImpl(this._semesterDao, [SubjectDao? _]);
 
   @override
   Future<List<SemesterEntity>> getAllSemesters() async {
-    final rows = await _semesterDao.getAllSemesters();
-    final result = <SemesterEntity>[];
-    for (final s in rows) {
-      final subjects = await getSemesterSubjects(s.id);
-      result.add(_mapSemester(s, subjects));
-    }
-    return result;
+    final rows = await _semesterDao.getAllSemestersWithSubjects();
+    return _mapJoinedResultsToSemesters(rows);
   }
 
   @override
   Stream<List<SemesterEntity>> watchAllSemesters() {
-    return _semesterDao.watchSemesters().asyncMap((rows) async {
-      final result = <SemesterEntity>[];
-      for (final s in rows) {
-        final subjects = await getSemesterSubjects(s.id);
-        result.add(_mapSemester(s, subjects));
-      }
-      return result;
+    return _semesterDao.watchSemestersWithSubjects().map((rows) {
+      return _mapJoinedResultsToSemesters(rows);
     });
   }
 
@@ -77,43 +66,84 @@ class SemesterRepositoryImpl implements ISemesterRepository {
 
   @override
   Future<List<SemesterSubjectEntity>> getSemesterSubjects(int semesterId) async {
-    final attempts = await _semesterDao.getSemesterSubjects(semesterId);
-    final result = <SemesterSubjectEntity>[];
-    for (final a in attempts) {
-      final subjectData = await _subjectDao.getSubjectById(a.subjectId);
-      final subjectEntity = subjectData != null
+    final rows = await _semesterDao.getSemesterSubjectsWithDetails(semesterId);
+    return rows.map((row) {
+      final a = row.readTable(_semesterDao.semesterSubjects);
+      final sub = row.readTableOrNull(_semesterDao.subjects);
+      final subjectEntity = sub != null
           ? SubjectEntity(
-              id: subjectData.id,
-              subjectName: subjectData.subjectName,
-              subjectCode: subjectData.subjectCode,
-              createdAt: subjectData.createdAt,
-              updatedAt: subjectData.updatedAt,
+              id: sub.id,
+              subjectName: sub.subjectName,
+              subjectCode: sub.subjectCode,
+              createdAt: sub.createdAt,
+              updatedAt: sub.updatedAt,
             )
           : null;
-      result.add(_mapAttempt(a, subjectEntity));
-    }
-    return result;
+      return _mapAttempt(a, subjectEntity);
+    }).toList();
   }
 
   @override
   Stream<List<SemesterSubjectEntity>> watchSemesterSubjects(int semesterId) {
-    return _semesterDao.watchSemesterSubjects(semesterId).asyncMap((attempts) async {
-      final result = <SemesterSubjectEntity>[];
-      for (final a in attempts) {
-        final subjectData = await _subjectDao.getSubjectById(a.subjectId);
-        final subjectEntity = subjectData != null
+    return _semesterDao.watchSemesterSubjectsWithDetails(semesterId).map((rows) {
+      return rows.map((row) {
+        final a = row.readTable(_semesterDao.semesterSubjects);
+        final sub = row.readTableOrNull(_semesterDao.subjects);
+        final subjectEntity = sub != null
             ? SubjectEntity(
-                id: subjectData.id,
-                subjectName: subjectData.subjectName,
-                subjectCode: subjectData.subjectCode,
-                createdAt: subjectData.createdAt,
-                updatedAt: subjectData.updatedAt,
+                id: sub.id,
+                subjectName: sub.subjectName,
+                subjectCode: sub.subjectCode,
+                createdAt: sub.createdAt,
+                updatedAt: sub.updatedAt,
               )
             : null;
-        result.add(_mapAttempt(a, subjectEntity));
-      }
-      return result;
+        return _mapAttempt(a, subjectEntity);
+      }).toList();
     });
+  }
+
+  List<SemesterEntity> _mapJoinedResultsToSemesters(List<TypedResult> rows) {
+    final semesterMap = <int, SemesterEntity>{};
+    final subjectsMap = <int, List<SemesterSubjectEntity>>{};
+
+    for (final row in rows) {
+      final s = row.readTable(_semesterDao.semesters);
+      if (!semesterMap.containsKey(s.id)) {
+        semesterMap[s.id] = SemesterEntity(
+          id: s.id,
+          name: s.name,
+          academicYear: s.academicYear,
+          semesterNumber: s.semesterNumber,
+          startDate: s.startDate,
+          endDate: s.endDate,
+          subjects: const [],
+          createdAt: s.createdAt,
+          updatedAt: s.updatedAt,
+        );
+        subjectsMap[s.id] = [];
+      }
+
+      final a = row.readTableOrNull(_semesterDao.semesterSubjects);
+      if (a != null) {
+        final sub = row.readTableOrNull(_semesterDao.subjects);
+        final subjectEntity = sub != null
+            ? SubjectEntity(
+                id: sub.id,
+                subjectName: sub.subjectName,
+                subjectCode: sub.subjectCode,
+                createdAt: sub.createdAt,
+                updatedAt: sub.updatedAt,
+              )
+            : null;
+
+        subjectsMap[s.id]!.add(_mapAttempt(a, subjectEntity));
+      }
+    }
+
+    return semesterMap.values.map((s) {
+      return s.copyWith(subjects: List.unmodifiable(subjectsMap[s.id] ?? []));
+    }).toList();
   }
 
   SemesterEntity _mapSemester(Semester s, List<SemesterSubjectEntity> subjects) {

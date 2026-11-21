@@ -392,8 +392,10 @@ class Dashboard extends ConsumerWidget {
   /// Individual Semester Card matching reference screenshot
   Widget _semesterCard(
       BuildContext context, WidgetRef ref, SemesterEntity semester) {
-    // Calculate semester GPA from its subjects
-    final gpaResult = ref.watch(semesterGpaProvider(semester.subjects));
+    // Watch subjects and GPA for this semester reactively
+    final subjectsAsync = ref.watch(semesterSubjectsStreamProvider(semester.id));
+    final subjects = subjectsAsync.value ?? semester.subjects;
+    final gpaResult = ref.watch(semesterGpaFromIdProvider(semester.id));
     final semesterGpa = gpaResult.gpa;
 
     return Padding(
@@ -412,7 +414,9 @@ class Dashboard extends ConsumerWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SemesterView(semester: semester),
+                  builder: (context) => SemesterView(
+                    semester: semester.copyWith(subjects: subjects),
+                  ),
                 ),
               );
             },
@@ -508,7 +512,7 @@ class Dashboard extends ConsumerWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${semester.subjects.length}',
+                                  '${subjects.length}',
                                   style: const TextStyle(
                                     fontFamily: 'Inter',
                                     fontSize: 16,

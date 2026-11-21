@@ -62,6 +62,14 @@ class SemesterView extends ConsumerWidget {
               semester.name,
               style: AppTextStyles.headlineMedium,
             ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded),
+                color: AppColors.error,
+                tooltip: 'Delete Semester',
+                onPressed: () => _confirmDeleteSemesterDialog(context, ref),
+              ),
+            ],
           ),
 
           // Header Section
@@ -318,6 +326,57 @@ class SemesterView extends ConsumerWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _confirmDeleteSemesterDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppDimensions.borderRadiusMd,
+          ),
+          title: const Text(
+            'Delete Semester?',
+            style: AppTextStyles.headlineSmall,
+          ),
+          content: Text(
+            'Are you sure you want to delete "${semester.name}"? This will permanently remove this semester and all its subject entries.',
+            style: AppTextStyles.bodyMedium,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.error,
+                foregroundColor: AppColors.onError,
+                minimumSize: const Size(80, 36),
+              ),
+              onPressed: () async {
+                await deleteSemester(ref, semester.id);
+                if (dialogContext.mounted) {
+                  Navigator.of(dialogContext).pop();
+                }
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Semester deleted successfully')),
+                  );
+                }
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
