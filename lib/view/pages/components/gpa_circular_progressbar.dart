@@ -22,13 +22,32 @@ class _GpaTheme {
 class GPACircularProgressBar extends StatelessWidget {
   final double gpa;
   final double maxGpa;
+  final double minGpa;
+  final bool isHigherBetter;
 
-  const GPACircularProgressBar({super.key, required this.gpa, this.maxGpa = 4.0});
+  const GPACircularProgressBar({
+    super.key,
+    required this.gpa,
+    this.maxGpa = 4.0,
+    this.minGpa = 0.0,
+    this.isHigherBetter = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final percentage = (gpa / maxGpa).clamp(0.0, 1.0);
-    final theme = _getGpaTheme(gpa, maxGpa);
+    final range = (maxGpa - minGpa).abs();
+    final percentage = gpa <= 0.0
+        ? 0.0
+        : (isHigherBetter
+            ? (range > 0 ? (gpa - minGpa) / range : 0.0)
+            : (range > 0 ? (maxGpa - gpa) / range : 0.0))
+            .clamp(0.0, 1.0);
+    final theme = _getGpaTheme(
+      gpa,
+      maxGpa,
+      minGpa: minGpa,
+      isHigherBetter: isHigherBetter,
+    );
     const trackColor = Color(0xFF1E2238); // Dark navy/slate track
 
     return SizedBox(
@@ -106,7 +125,12 @@ class GPACircularProgressBar extends StatelessWidget {
   }
 
   /// Returns dynamic colors and labels mapped to the GPA performance tier.
-  static _GpaTheme _getGpaTheme(double gpa, double maxGpa) {
+  static _GpaTheme _getGpaTheme(
+    double gpa,
+    double maxGpa, {
+    double minGpa = 0.0,
+    bool isHigherBetter = true,
+  }) {
     if (gpa <= 0) {
       return const _GpaTheme(
         arcColor: Color(0xFF64748B),
@@ -117,7 +141,13 @@ class GPACircularProgressBar extends StatelessWidget {
       );
     }
 
-    final ratio = gpa / (maxGpa > 0 ? maxGpa : 4.0);
+    final range = (maxGpa - minGpa).abs();
+    final double ratio;
+    if (isHigherBetter) {
+      ratio = range > 0 ? ((gpa - minGpa) / range).clamp(0.0, 1.0) : 0.0;
+    } else {
+      ratio = range > 0 ? ((maxGpa - gpa) / range).clamp(0.0, 1.0) : 0.0;
+    }
 
     if (ratio >= 0.925) {
       // 3.70 - 4.00 on a 4.0 scale: High Distinction (Emerald Green)

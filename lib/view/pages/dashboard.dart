@@ -16,6 +16,7 @@ class Dashboard extends ConsumerWidget {
     final semestersAsync = ref.watch(sortedSemestersProvider);
     final currentSort = ref.watch(semesterSortProvider);
     final cumulativeResult = ref.watch(cumulativeGpaProvider);
+    final activeScale = ref.watch(activeGradingScaleProvider);
     final profileAsync = ref.watch(studentProfileStreamProvider);
 
     final cumulativeGPA = cumulativeResult.gpa;
@@ -109,7 +110,12 @@ class Dashboard extends ConsumerWidget {
             // ── Circular CGPA Display ─────────────────────────────────
             SliverToBoxAdapter(
               child: Center(
-                child: GPACircularProgressBar(gpa: cumulativeGPA),
+                child: GPACircularProgressBar(
+                  gpa: cumulativeGPA,
+                  maxGpa: activeScale.maximumGpa,
+                  minGpa: activeScale.minimumValue,
+                  isHigherBetter: activeScale.isHigherBetter,
+                ),
               ),
             ),
 

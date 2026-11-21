@@ -246,12 +246,19 @@ class SemesterView extends ConsumerWidget {
     );
   }
 
-  Color _getGradeColor(String grade) {
-    final match = gradeDefinitions.where(
+  Color _getGradeColor(WidgetRef ref, String grade) {
+    final activeGrades = ref.watch(activeGradeDefinitionsProvider);
+    final match = activeGrades.where(
       (g) => g.grade.trim().toUpperCase() == grade.trim().toUpperCase(),
     );
     if (match.isNotEmpty) {
       return Color(match.first.colorValue);
+    }
+    final fallbackMatch = gradeDefinitions.where(
+      (g) => g.grade.trim().toUpperCase() == grade.trim().toUpperCase(),
+    );
+    if (fallbackMatch.isNotEmpty) {
+      return Color(fallbackMatch.first.colorValue);
     }
     return AppColors.success;
   }
@@ -259,7 +266,7 @@ class SemesterView extends ConsumerWidget {
   // Subject item widget
   Widget _subjectCard(BuildContext context, WidgetRef ref, SemesterSubjectEntity attempt) {
     final gradeName = attempt.grade ?? '?';
-    final gradeColor = _getGradeColor(gradeName);
+    final gradeColor = _getGradeColor(ref, gradeName);
     final subjectName = attempt.subject?.subjectName ?? 'Unnamed Subject';
 
     return Padding(

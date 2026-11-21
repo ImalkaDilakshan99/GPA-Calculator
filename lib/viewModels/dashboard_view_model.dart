@@ -6,6 +6,9 @@ import 'package:gpa_calculator/domain/entities/semester_subject_entity.dart';
 import 'package:gpa_calculator/domain/entities/student_profile_entity.dart';
 import 'package:gpa_calculator/domain/entities/subject_entity.dart';
 import 'package:gpa_calculator/models/grade_model.dart';
+import 'package:gpa_calculator/viewModels/grading_scale_view_model.dart';
+
+export 'package:gpa_calculator/viewModels/grading_scale_view_model.dart';
 
 // ── Grade definitions (single source of truth for UI) ────────────────
 const List<GradeModel> gradeDefinitions = [
@@ -58,6 +61,7 @@ final sortedSemestersProvider =
   final semestersAsync = ref.watch(semestersStreamProvider);
   final sortOption = ref.watch(semesterSortProvider);
   final service = ref.watch(gpaCalculatorServiceProvider);
+  final activeScale = ref.watch(activeGradingScaleProvider);
 
   return semestersAsync.whenData((semesters) {
     final list = List<SemesterEntity>.from(semesters);
@@ -80,16 +84,16 @@ final sortedSemestersProvider =
         });
       case SemesterSortOption.gpaHighToLow:
         list.sort((a, b) {
-          final gpaA = service.calculateSemesterGpa(a.subjects).gpa;
-          final gpaB = service.calculateSemesterGpa(b.subjects).gpa;
+          final gpaA = service.calculateSemesterGpa(a.subjects, scale: activeScale).gpa;
+          final gpaB = service.calculateSemesterGpa(b.subjects, scale: activeScale).gpa;
           final gpaCmp = gpaB.compareTo(gpaA);
           if (gpaCmp != 0) return gpaCmp;
           return b.academicYear.compareTo(a.academicYear);
         });
       case SemesterSortOption.gpaLowToHigh:
         list.sort((a, b) {
-          final gpaA = service.calculateSemesterGpa(a.subjects).gpa;
-          final gpaB = service.calculateSemesterGpa(b.subjects).gpa;
+          final gpaA = service.calculateSemesterGpa(a.subjects, scale: activeScale).gpa;
+          final gpaB = service.calculateSemesterGpa(b.subjects, scale: activeScale).gpa;
           final gpaCmp = gpaA.compareTo(gpaB);
           if (gpaCmp != 0) return gpaCmp;
           return a.academicYear.compareTo(b.academicYear);
@@ -111,7 +115,8 @@ final semesterGpaProvider =
     Provider.family<GpaCalculationResult, List<SemesterSubjectEntity>>(
         (ref, subjects) {
   final service = ref.watch(gpaCalculatorServiceProvider);
-  return service.calculateSemesterGpa(subjects);
+  final activeScale = ref.watch(activeGradingScaleProvider);
+  return service.calculateSemesterGpa(subjects, scale: activeScale);
 });
 
 // ── Semester GPA reactively derived from semester ID ─────────────────
@@ -120,16 +125,18 @@ final semesterGpaFromIdProvider =
   final subjectsAsync = ref.watch(semesterSubjectsStreamProvider(semesterId));
   final subjects = subjectsAsync.value ?? const [];
   final service = ref.watch(gpaCalculatorServiceProvider);
-  return service.calculateSemesterGpa(subjects);
+  final activeScale = ref.watch(activeGradingScaleProvider);
+  return service.calculateSemesterGpa(subjects, scale: activeScale);
 });
 
 // ── Cumulative GPA across all semesters ──────────────────────────────
 final cumulativeGpaProvider = Provider<GpaCalculationResult>((ref) {
   final semestersAsync = ref.watch(semestersStreamProvider);
   final service = ref.watch(gpaCalculatorServiceProvider);
+  final activeScale = ref.watch(activeGradingScaleProvider);
 
   return semestersAsync.when(
-    data: (semesters) => service.calculateCumulativeGpa(semesters),
+    data: (semesters) => service.calculateCumulativeGpa(semesters, scale: activeScale),
     loading: () => GpaCalculationResult.empty,
     error: (err, stack) => GpaCalculationResult.empty,
   );

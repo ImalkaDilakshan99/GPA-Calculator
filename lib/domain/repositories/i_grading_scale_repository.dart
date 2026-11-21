@@ -6,9 +6,10 @@ abstract interface class IGradingScaleRepository {
   Stream<List<GradingScaleEntity>> watchAllScales();
   Future<GradingScaleEntity?> getScaleById(int id);
   Future<GradingScaleEntity?> getDefaultScale();
+  Future<void> setDefaultScale(int id);
   Future<List<GradingScaleEntryEntity>> getEntriesForScale(int scaleId);
   Future<int> createScale(GradingScaleEntity scale);
   Future<void> updateScale(GradingScaleEntity scale);
   Future<void> deleteScale(int id);
+  Future<void> setActiveGradingScale(int scaleId, {bool recalculateExisting = false});
 }
-

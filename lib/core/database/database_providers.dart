@@ -50,6 +50,8 @@ final studentRepositoryProvider = Provider<IStudentRepository>((ref) {
 final gradingScaleRepositoryProvider = Provider<IGradingScaleRepository>((ref) {
   return GradingScaleRepositoryImpl(
     ref.watch(gradingScaleDaoProvider),
+    ref.watch(studentDaoProvider),
+    ref.watch(subjectDaoProvider),
   );
 });
 

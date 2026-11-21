@@ -31,16 +31,38 @@ class $GradingScalesTable extends GradingScales
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _maximumGpaMeta = const VerificationMeta(
-    'maximumGpa',
+  static const VerificationMeta _countryMeta = const VerificationMeta(
+    'country',
   );
   @override
-  late final GeneratedColumn<double> maximumGpa = GeneratedColumn<double>(
-    'maximum_gpa',
+  late final GeneratedColumn<String> country = GeneratedColumn<String>(
+    'country',
     aliasedName,
-    false,
-    type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _universityMeta = const VerificationMeta(
+    'university',
+  );
+  @override
+  late final GeneratedColumn<String> university = GeneratedColumn<String>(
+    'university',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _scaleTypeMeta = const VerificationMeta(
     'scaleType',
@@ -52,6 +74,116 @@ class $GradingScalesTable extends GradingScales
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('general'),
+  );
+  static const VerificationMeta _calculationTypeMeta = const VerificationMeta(
+    'calculationType',
+  );
+  @override
+  late final GeneratedColumn<String> calculationType = GeneratedColumn<String>(
+    'calculation_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('gpa'),
+  );
+  static const VerificationMeta _minimumValueMeta = const VerificationMeta(
+    'minimumValue',
+  );
+  @override
+  late final GeneratedColumn<double> minimumValue = GeneratedColumn<double>(
+    'minimum_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _maximumGpaMeta = const VerificationMeta(
+    'maximumGpa',
+  );
+  @override
+  late final GeneratedColumn<double> maximumGpa = GeneratedColumn<double>(
+    'maximum_gpa',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bestValueMeta = const VerificationMeta(
+    'bestValue',
+  );
+  @override
+  late final GeneratedColumn<double> bestValue = GeneratedColumn<double>(
+    'best_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(4.0),
+  );
+  static const VerificationMeta _worstValueMeta = const VerificationMeta(
+    'worstValue',
+  );
+  @override
+  late final GeneratedColumn<double> worstValue = GeneratedColumn<double>(
+    'worst_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0.0),
+  );
+  static const VerificationMeta _passingValueMeta = const VerificationMeta(
+    'passingValue',
+  );
+  @override
+  late final GeneratedColumn<double> passingValue = GeneratedColumn<double>(
+    'passing_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2.0),
+  );
+  static const VerificationMeta _isHigherBetterMeta = const VerificationMeta(
+    'isHigherBetter',
+  );
+  @override
+  late final GeneratedColumn<bool> isHigherBetter = GeneratedColumn<bool>(
+    'is_higher_better',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_higher_better" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _decimalPlacesMeta = const VerificationMeta(
+    'decimalPlaces',
+  );
+  @override
+  late final GeneratedColumn<int> decimalPlaces = GeneratedColumn<int>(
+    'decimal_places',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(2),
   );
   static const VerificationMeta _isDefaultMeta = const VerificationMeta(
     'isDefault',
@@ -96,8 +228,19 @@ class $GradingScalesTable extends GradingScales
   List<GeneratedColumn> get $columns => [
     id,
     name,
-    maximumGpa,
+    country,
+    university,
+    description,
     scaleType,
+    category,
+    calculationType,
+    minimumValue,
+    maximumGpa,
+    bestValue,
+    worstValue,
+    passingValue,
+    isHigherBetter,
+    decimalPlaces,
     isDefault,
     createdAt,
     updatedAt,
@@ -125,13 +268,26 @@ class $GradingScalesTable extends GradingScales
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('maximum_gpa')) {
+    if (data.containsKey('country')) {
       context.handle(
-        _maximumGpaMeta,
-        maximumGpa.isAcceptableOrUnknown(data['maximum_gpa']!, _maximumGpaMeta),
+        _countryMeta,
+        country.isAcceptableOrUnknown(data['country']!, _countryMeta),
       );
-    } else if (isInserting) {
-      context.missing(_maximumGpaMeta);
+    }
+    if (data.containsKey('university')) {
+      context.handle(
+        _universityMeta,
+        university.isAcceptableOrUnknown(data['university']!, _universityMeta),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
     }
     if (data.containsKey('scale_type')) {
       context.handle(
@@ -140,6 +296,77 @@ class $GradingScalesTable extends GradingScales
       );
     } else if (isInserting) {
       context.missing(_scaleTypeMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('calculation_type')) {
+      context.handle(
+        _calculationTypeMeta,
+        calculationType.isAcceptableOrUnknown(
+          data['calculation_type']!,
+          _calculationTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('minimum_value')) {
+      context.handle(
+        _minimumValueMeta,
+        minimumValue.isAcceptableOrUnknown(
+          data['minimum_value']!,
+          _minimumValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('maximum_gpa')) {
+      context.handle(
+        _maximumGpaMeta,
+        maximumGpa.isAcceptableOrUnknown(data['maximum_gpa']!, _maximumGpaMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_maximumGpaMeta);
+    }
+    if (data.containsKey('best_value')) {
+      context.handle(
+        _bestValueMeta,
+        bestValue.isAcceptableOrUnknown(data['best_value']!, _bestValueMeta),
+      );
+    }
+    if (data.containsKey('worst_value')) {
+      context.handle(
+        _worstValueMeta,
+        worstValue.isAcceptableOrUnknown(data['worst_value']!, _worstValueMeta),
+      );
+    }
+    if (data.containsKey('passing_value')) {
+      context.handle(
+        _passingValueMeta,
+        passingValue.isAcceptableOrUnknown(
+          data['passing_value']!,
+          _passingValueMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_higher_better')) {
+      context.handle(
+        _isHigherBetterMeta,
+        isHigherBetter.isAcceptableOrUnknown(
+          data['is_higher_better']!,
+          _isHigherBetterMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decimal_places')) {
+      context.handle(
+        _decimalPlacesMeta,
+        decimalPlaces.isAcceptableOrUnknown(
+          data['decimal_places']!,
+          _decimalPlacesMeta,
+        ),
+      );
     }
     if (data.containsKey('is_default')) {
       context.handle(
@@ -176,13 +403,57 @@ class $GradingScalesTable extends GradingScales
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      country: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}country'],
+      ),
+      university: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}university'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      scaleType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scale_type'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      calculationType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}calculation_type'],
+      )!,
+      minimumValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minimum_value'],
+      )!,
       maximumGpa: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}maximum_gpa'],
       )!,
-      scaleType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}scale_type'],
+      bestValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}best_value'],
+      )!,
+      worstValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}worst_value'],
+      )!,
+      passingValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}passing_value'],
+      )!,
+      isHigherBetter: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_higher_better'],
+      )!,
+      decimalPlaces: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}decimal_places'],
       )!,
       isDefault: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
@@ -208,16 +479,38 @@ class $GradingScalesTable extends GradingScales
 class GradingScale extends DataClass implements Insertable<GradingScale> {
   final int id;
   final String name;
-  final double maximumGpa;
+  final String? country;
+  final String? university;
+  final String? description;
   final String scaleType;
+  final String category;
+  final String calculationType;
+  final double minimumValue;
+  final double maximumGpa;
+  final double bestValue;
+  final double worstValue;
+  final double passingValue;
+  final bool isHigherBetter;
+  final int decimalPlaces;
   final bool isDefault;
   final DateTime createdAt;
   final DateTime updatedAt;
   const GradingScale({
     required this.id,
     required this.name,
-    required this.maximumGpa,
+    this.country,
+    this.university,
+    this.description,
     required this.scaleType,
+    required this.category,
+    required this.calculationType,
+    required this.minimumValue,
+    required this.maximumGpa,
+    required this.bestValue,
+    required this.worstValue,
+    required this.passingValue,
+    required this.isHigherBetter,
+    required this.decimalPlaces,
     required this.isDefault,
     required this.createdAt,
     required this.updatedAt,
@@ -227,8 +520,25 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    map['maximum_gpa'] = Variable<double>(maximumGpa);
+    if (!nullToAbsent || country != null) {
+      map['country'] = Variable<String>(country);
+    }
+    if (!nullToAbsent || university != null) {
+      map['university'] = Variable<String>(university);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
     map['scale_type'] = Variable<String>(scaleType);
+    map['category'] = Variable<String>(category);
+    map['calculation_type'] = Variable<String>(calculationType);
+    map['minimum_value'] = Variable<double>(minimumValue);
+    map['maximum_gpa'] = Variable<double>(maximumGpa);
+    map['best_value'] = Variable<double>(bestValue);
+    map['worst_value'] = Variable<double>(worstValue);
+    map['passing_value'] = Variable<double>(passingValue);
+    map['is_higher_better'] = Variable<bool>(isHigherBetter);
+    map['decimal_places'] = Variable<int>(decimalPlaces);
     map['is_default'] = Variable<bool>(isDefault);
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -239,8 +549,25 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
     return GradingScalesCompanion(
       id: Value(id),
       name: Value(name),
-      maximumGpa: Value(maximumGpa),
+      country: country == null && nullToAbsent
+          ? const Value.absent()
+          : Value(country),
+      university: university == null && nullToAbsent
+          ? const Value.absent()
+          : Value(university),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
       scaleType: Value(scaleType),
+      category: Value(category),
+      calculationType: Value(calculationType),
+      minimumValue: Value(minimumValue),
+      maximumGpa: Value(maximumGpa),
+      bestValue: Value(bestValue),
+      worstValue: Value(worstValue),
+      passingValue: Value(passingValue),
+      isHigherBetter: Value(isHigherBetter),
+      decimalPlaces: Value(decimalPlaces),
       isDefault: Value(isDefault),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
@@ -255,8 +582,19 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
     return GradingScale(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      maximumGpa: serializer.fromJson<double>(json['maximumGpa']),
+      country: serializer.fromJson<String?>(json['country']),
+      university: serializer.fromJson<String?>(json['university']),
+      description: serializer.fromJson<String?>(json['description']),
       scaleType: serializer.fromJson<String>(json['scaleType']),
+      category: serializer.fromJson<String>(json['category']),
+      calculationType: serializer.fromJson<String>(json['calculationType']),
+      minimumValue: serializer.fromJson<double>(json['minimumValue']),
+      maximumGpa: serializer.fromJson<double>(json['maximumGpa']),
+      bestValue: serializer.fromJson<double>(json['bestValue']),
+      worstValue: serializer.fromJson<double>(json['worstValue']),
+      passingValue: serializer.fromJson<double>(json['passingValue']),
+      isHigherBetter: serializer.fromJson<bool>(json['isHigherBetter']),
+      decimalPlaces: serializer.fromJson<int>(json['decimalPlaces']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
@@ -268,8 +606,19 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'maximumGpa': serializer.toJson<double>(maximumGpa),
+      'country': serializer.toJson<String?>(country),
+      'university': serializer.toJson<String?>(university),
+      'description': serializer.toJson<String?>(description),
       'scaleType': serializer.toJson<String>(scaleType),
+      'category': serializer.toJson<String>(category),
+      'calculationType': serializer.toJson<String>(calculationType),
+      'minimumValue': serializer.toJson<double>(minimumValue),
+      'maximumGpa': serializer.toJson<double>(maximumGpa),
+      'bestValue': serializer.toJson<double>(bestValue),
+      'worstValue': serializer.toJson<double>(worstValue),
+      'passingValue': serializer.toJson<double>(passingValue),
+      'isHigherBetter': serializer.toJson<bool>(isHigherBetter),
+      'decimalPlaces': serializer.toJson<int>(decimalPlaces),
       'isDefault': serializer.toJson<bool>(isDefault),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
@@ -279,16 +628,38 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
   GradingScale copyWith({
     int? id,
     String? name,
-    double? maximumGpa,
+    Value<String?> country = const Value.absent(),
+    Value<String?> university = const Value.absent(),
+    Value<String?> description = const Value.absent(),
     String? scaleType,
+    String? category,
+    String? calculationType,
+    double? minimumValue,
+    double? maximumGpa,
+    double? bestValue,
+    double? worstValue,
+    double? passingValue,
+    bool? isHigherBetter,
+    int? decimalPlaces,
     bool? isDefault,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => GradingScale(
     id: id ?? this.id,
     name: name ?? this.name,
-    maximumGpa: maximumGpa ?? this.maximumGpa,
+    country: country.present ? country.value : this.country,
+    university: university.present ? university.value : this.university,
+    description: description.present ? description.value : this.description,
     scaleType: scaleType ?? this.scaleType,
+    category: category ?? this.category,
+    calculationType: calculationType ?? this.calculationType,
+    minimumValue: minimumValue ?? this.minimumValue,
+    maximumGpa: maximumGpa ?? this.maximumGpa,
+    bestValue: bestValue ?? this.bestValue,
+    worstValue: worstValue ?? this.worstValue,
+    passingValue: passingValue ?? this.passingValue,
+    isHigherBetter: isHigherBetter ?? this.isHigherBetter,
+    decimalPlaces: decimalPlaces ?? this.decimalPlaces,
     isDefault: isDefault ?? this.isDefault,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
@@ -297,10 +668,37 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
     return GradingScale(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      country: data.country.present ? data.country.value : this.country,
+      university: data.university.present
+          ? data.university.value
+          : this.university,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      scaleType: data.scaleType.present ? data.scaleType.value : this.scaleType,
+      category: data.category.present ? data.category.value : this.category,
+      calculationType: data.calculationType.present
+          ? data.calculationType.value
+          : this.calculationType,
+      minimumValue: data.minimumValue.present
+          ? data.minimumValue.value
+          : this.minimumValue,
       maximumGpa: data.maximumGpa.present
           ? data.maximumGpa.value
           : this.maximumGpa,
-      scaleType: data.scaleType.present ? data.scaleType.value : this.scaleType,
+      bestValue: data.bestValue.present ? data.bestValue.value : this.bestValue,
+      worstValue: data.worstValue.present
+          ? data.worstValue.value
+          : this.worstValue,
+      passingValue: data.passingValue.present
+          ? data.passingValue.value
+          : this.passingValue,
+      isHigherBetter: data.isHigherBetter.present
+          ? data.isHigherBetter.value
+          : this.isHigherBetter,
+      decimalPlaces: data.decimalPlaces.present
+          ? data.decimalPlaces.value
+          : this.decimalPlaces,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -312,8 +710,19 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
     return (StringBuffer('GradingScale(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('maximumGpa: $maximumGpa, ')
+          ..write('country: $country, ')
+          ..write('university: $university, ')
+          ..write('description: $description, ')
           ..write('scaleType: $scaleType, ')
+          ..write('category: $category, ')
+          ..write('calculationType: $calculationType, ')
+          ..write('minimumValue: $minimumValue, ')
+          ..write('maximumGpa: $maximumGpa, ')
+          ..write('bestValue: $bestValue, ')
+          ..write('worstValue: $worstValue, ')
+          ..write('passingValue: $passingValue, ')
+          ..write('isHigherBetter: $isHigherBetter, ')
+          ..write('decimalPlaces: $decimalPlaces, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -325,8 +734,19 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
   int get hashCode => Object.hash(
     id,
     name,
-    maximumGpa,
+    country,
+    university,
+    description,
     scaleType,
+    category,
+    calculationType,
+    minimumValue,
+    maximumGpa,
+    bestValue,
+    worstValue,
+    passingValue,
+    isHigherBetter,
+    decimalPlaces,
     isDefault,
     createdAt,
     updatedAt,
@@ -337,8 +757,19 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
       (other is GradingScale &&
           other.id == this.id &&
           other.name == this.name &&
-          other.maximumGpa == this.maximumGpa &&
+          other.country == this.country &&
+          other.university == this.university &&
+          other.description == this.description &&
           other.scaleType == this.scaleType &&
+          other.category == this.category &&
+          other.calculationType == this.calculationType &&
+          other.minimumValue == this.minimumValue &&
+          other.maximumGpa == this.maximumGpa &&
+          other.bestValue == this.bestValue &&
+          other.worstValue == this.worstValue &&
+          other.passingValue == this.passingValue &&
+          other.isHigherBetter == this.isHigherBetter &&
+          other.decimalPlaces == this.decimalPlaces &&
           other.isDefault == this.isDefault &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -347,16 +778,38 @@ class GradingScale extends DataClass implements Insertable<GradingScale> {
 class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
   final Value<int> id;
   final Value<String> name;
-  final Value<double> maximumGpa;
+  final Value<String?> country;
+  final Value<String?> university;
+  final Value<String?> description;
   final Value<String> scaleType;
+  final Value<String> category;
+  final Value<String> calculationType;
+  final Value<double> minimumValue;
+  final Value<double> maximumGpa;
+  final Value<double> bestValue;
+  final Value<double> worstValue;
+  final Value<double> passingValue;
+  final Value<bool> isHigherBetter;
+  final Value<int> decimalPlaces;
   final Value<bool> isDefault;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const GradingScalesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.maximumGpa = const Value.absent(),
+    this.country = const Value.absent(),
+    this.university = const Value.absent(),
+    this.description = const Value.absent(),
     this.scaleType = const Value.absent(),
+    this.category = const Value.absent(),
+    this.calculationType = const Value.absent(),
+    this.minimumValue = const Value.absent(),
+    this.maximumGpa = const Value.absent(),
+    this.bestValue = const Value.absent(),
+    this.worstValue = const Value.absent(),
+    this.passingValue = const Value.absent(),
+    this.isHigherBetter = const Value.absent(),
+    this.decimalPlaces = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -364,19 +817,41 @@ class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
   GradingScalesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    required double maximumGpa,
+    this.country = const Value.absent(),
+    this.university = const Value.absent(),
+    this.description = const Value.absent(),
     required String scaleType,
+    this.category = const Value.absent(),
+    this.calculationType = const Value.absent(),
+    this.minimumValue = const Value.absent(),
+    required double maximumGpa,
+    this.bestValue = const Value.absent(),
+    this.worstValue = const Value.absent(),
+    this.passingValue = const Value.absent(),
+    this.isHigherBetter = const Value.absent(),
+    this.decimalPlaces = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : name = Value(name),
-       maximumGpa = Value(maximumGpa),
-       scaleType = Value(scaleType);
+       scaleType = Value(scaleType),
+       maximumGpa = Value(maximumGpa);
   static Insertable<GradingScale> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<double>? maximumGpa,
+    Expression<String>? country,
+    Expression<String>? university,
+    Expression<String>? description,
     Expression<String>? scaleType,
+    Expression<String>? category,
+    Expression<String>? calculationType,
+    Expression<double>? minimumValue,
+    Expression<double>? maximumGpa,
+    Expression<double>? bestValue,
+    Expression<double>? worstValue,
+    Expression<double>? passingValue,
+    Expression<bool>? isHigherBetter,
+    Expression<int>? decimalPlaces,
     Expression<bool>? isDefault,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -384,8 +859,19 @@ class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (maximumGpa != null) 'maximum_gpa': maximumGpa,
+      if (country != null) 'country': country,
+      if (university != null) 'university': university,
+      if (description != null) 'description': description,
       if (scaleType != null) 'scale_type': scaleType,
+      if (category != null) 'category': category,
+      if (calculationType != null) 'calculation_type': calculationType,
+      if (minimumValue != null) 'minimum_value': minimumValue,
+      if (maximumGpa != null) 'maximum_gpa': maximumGpa,
+      if (bestValue != null) 'best_value': bestValue,
+      if (worstValue != null) 'worst_value': worstValue,
+      if (passingValue != null) 'passing_value': passingValue,
+      if (isHigherBetter != null) 'is_higher_better': isHigherBetter,
+      if (decimalPlaces != null) 'decimal_places': decimalPlaces,
       if (isDefault != null) 'is_default': isDefault,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -395,8 +881,19 @@ class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
   GradingScalesCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
-    Value<double>? maximumGpa,
+    Value<String?>? country,
+    Value<String?>? university,
+    Value<String?>? description,
     Value<String>? scaleType,
+    Value<String>? category,
+    Value<String>? calculationType,
+    Value<double>? minimumValue,
+    Value<double>? maximumGpa,
+    Value<double>? bestValue,
+    Value<double>? worstValue,
+    Value<double>? passingValue,
+    Value<bool>? isHigherBetter,
+    Value<int>? decimalPlaces,
     Value<bool>? isDefault,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
@@ -404,8 +901,19 @@ class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
     return GradingScalesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      maximumGpa: maximumGpa ?? this.maximumGpa,
+      country: country ?? this.country,
+      university: university ?? this.university,
+      description: description ?? this.description,
       scaleType: scaleType ?? this.scaleType,
+      category: category ?? this.category,
+      calculationType: calculationType ?? this.calculationType,
+      minimumValue: minimumValue ?? this.minimumValue,
+      maximumGpa: maximumGpa ?? this.maximumGpa,
+      bestValue: bestValue ?? this.bestValue,
+      worstValue: worstValue ?? this.worstValue,
+      passingValue: passingValue ?? this.passingValue,
+      isHigherBetter: isHigherBetter ?? this.isHigherBetter,
+      decimalPlaces: decimalPlaces ?? this.decimalPlaces,
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -421,11 +929,44 @@ class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (maximumGpa.present) {
-      map['maximum_gpa'] = Variable<double>(maximumGpa.value);
+    if (country.present) {
+      map['country'] = Variable<String>(country.value);
+    }
+    if (university.present) {
+      map['university'] = Variable<String>(university.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
     }
     if (scaleType.present) {
       map['scale_type'] = Variable<String>(scaleType.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (calculationType.present) {
+      map['calculation_type'] = Variable<String>(calculationType.value);
+    }
+    if (minimumValue.present) {
+      map['minimum_value'] = Variable<double>(minimumValue.value);
+    }
+    if (maximumGpa.present) {
+      map['maximum_gpa'] = Variable<double>(maximumGpa.value);
+    }
+    if (bestValue.present) {
+      map['best_value'] = Variable<double>(bestValue.value);
+    }
+    if (worstValue.present) {
+      map['worst_value'] = Variable<double>(worstValue.value);
+    }
+    if (passingValue.present) {
+      map['passing_value'] = Variable<double>(passingValue.value);
+    }
+    if (isHigherBetter.present) {
+      map['is_higher_better'] = Variable<bool>(isHigherBetter.value);
+    }
+    if (decimalPlaces.present) {
+      map['decimal_places'] = Variable<int>(decimalPlaces.value);
     }
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
@@ -444,8 +985,19 @@ class GradingScalesCompanion extends UpdateCompanion<GradingScale> {
     return (StringBuffer('GradingScalesCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('maximumGpa: $maximumGpa, ')
+          ..write('country: $country, ')
+          ..write('university: $university, ')
+          ..write('description: $description, ')
           ..write('scaleType: $scaleType, ')
+          ..write('category: $category, ')
+          ..write('calculationType: $calculationType, ')
+          ..write('minimumValue: $minimumValue, ')
+          ..write('maximumGpa: $maximumGpa, ')
+          ..write('bestValue: $bestValue, ')
+          ..write('worstValue: $worstValue, ')
+          ..write('passingValue: $passingValue, ')
+          ..write('isHigherBetter: $isHigherBetter, ')
+          ..write('decimalPlaces: $decimalPlaces, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -1024,8 +1576,68 @@ class $GradingScaleEntriesTable extends GradingScaleEntries
     requiredDuringInsert: true,
     $customConstraints: 'NOT NULL CHECK (grade_point >= 0.0)',
   );
+  static const VerificationMeta _minimumPercentageMeta = const VerificationMeta(
+    'minimumPercentage',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, gradingScaleId, grade, gradePoint];
+  late final GeneratedColumn<double> minimumPercentage =
+      GeneratedColumn<double>(
+        'minimum_percentage',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _maximumPercentageMeta = const VerificationMeta(
+    'maximumPercentage',
+  );
+  @override
+  late final GeneratedColumn<double> maximumPercentage =
+      GeneratedColumn<double>(
+        'maximum_percentage',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _isPassingMeta = const VerificationMeta(
+    'isPassing',
+  );
+  @override
+  late final GeneratedColumn<bool> isPassing = GeneratedColumn<bool>(
+    'is_passing',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_passing" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _displayOrderMeta = const VerificationMeta(
+    'displayOrder',
+  );
+  @override
+  late final GeneratedColumn<int> displayOrder = GeneratedColumn<int>(
+    'display_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    gradingScaleId,
+    grade,
+    gradePoint,
+    minimumPercentage,
+    maximumPercentage,
+    isPassing,
+    displayOrder,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1068,6 +1680,39 @@ class $GradingScaleEntriesTable extends GradingScaleEntries
     } else if (isInserting) {
       context.missing(_gradePointMeta);
     }
+    if (data.containsKey('minimum_percentage')) {
+      context.handle(
+        _minimumPercentageMeta,
+        minimumPercentage.isAcceptableOrUnknown(
+          data['minimum_percentage']!,
+          _minimumPercentageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('maximum_percentage')) {
+      context.handle(
+        _maximumPercentageMeta,
+        maximumPercentage.isAcceptableOrUnknown(
+          data['maximum_percentage']!,
+          _maximumPercentageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('is_passing')) {
+      context.handle(
+        _isPassingMeta,
+        isPassing.isAcceptableOrUnknown(data['is_passing']!, _isPassingMeta),
+      );
+    }
+    if (data.containsKey('display_order')) {
+      context.handle(
+        _displayOrderMeta,
+        displayOrder.isAcceptableOrUnknown(
+          data['display_order']!,
+          _displayOrderMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1097,6 +1742,22 @@ class $GradingScaleEntriesTable extends GradingScaleEntries
         DriftSqlType.double,
         data['${effectivePrefix}grade_point'],
       )!,
+      minimumPercentage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}minimum_percentage'],
+      ),
+      maximumPercentage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}maximum_percentage'],
+      ),
+      isPassing: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_passing'],
+      )!,
+      displayOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}display_order'],
+      )!,
     );
   }
 
@@ -1112,11 +1773,19 @@ class GradingScaleEntry extends DataClass
   final int gradingScaleId;
   final String grade;
   final double gradePoint;
+  final double? minimumPercentage;
+  final double? maximumPercentage;
+  final bool isPassing;
+  final int displayOrder;
   const GradingScaleEntry({
     required this.id,
     required this.gradingScaleId,
     required this.grade,
     required this.gradePoint,
+    this.minimumPercentage,
+    this.maximumPercentage,
+    required this.isPassing,
+    required this.displayOrder,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1125,6 +1794,14 @@ class GradingScaleEntry extends DataClass
     map['grading_scale_id'] = Variable<int>(gradingScaleId);
     map['grade'] = Variable<String>(grade);
     map['grade_point'] = Variable<double>(gradePoint);
+    if (!nullToAbsent || minimumPercentage != null) {
+      map['minimum_percentage'] = Variable<double>(minimumPercentage);
+    }
+    if (!nullToAbsent || maximumPercentage != null) {
+      map['maximum_percentage'] = Variable<double>(maximumPercentage);
+    }
+    map['is_passing'] = Variable<bool>(isPassing);
+    map['display_order'] = Variable<int>(displayOrder);
     return map;
   }
 
@@ -1134,6 +1811,14 @@ class GradingScaleEntry extends DataClass
       gradingScaleId: Value(gradingScaleId),
       grade: Value(grade),
       gradePoint: Value(gradePoint),
+      minimumPercentage: minimumPercentage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(minimumPercentage),
+      maximumPercentage: maximumPercentage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(maximumPercentage),
+      isPassing: Value(isPassing),
+      displayOrder: Value(displayOrder),
     );
   }
 
@@ -1147,6 +1832,14 @@ class GradingScaleEntry extends DataClass
       gradingScaleId: serializer.fromJson<int>(json['gradingScaleId']),
       grade: serializer.fromJson<String>(json['grade']),
       gradePoint: serializer.fromJson<double>(json['gradePoint']),
+      minimumPercentage: serializer.fromJson<double?>(
+        json['minimumPercentage'],
+      ),
+      maximumPercentage: serializer.fromJson<double?>(
+        json['maximumPercentage'],
+      ),
+      isPassing: serializer.fromJson<bool>(json['isPassing']),
+      displayOrder: serializer.fromJson<int>(json['displayOrder']),
     );
   }
   @override
@@ -1157,6 +1850,10 @@ class GradingScaleEntry extends DataClass
       'gradingScaleId': serializer.toJson<int>(gradingScaleId),
       'grade': serializer.toJson<String>(grade),
       'gradePoint': serializer.toJson<double>(gradePoint),
+      'minimumPercentage': serializer.toJson<double?>(minimumPercentage),
+      'maximumPercentage': serializer.toJson<double?>(maximumPercentage),
+      'isPassing': serializer.toJson<bool>(isPassing),
+      'displayOrder': serializer.toJson<int>(displayOrder),
     };
   }
 
@@ -1165,11 +1862,23 @@ class GradingScaleEntry extends DataClass
     int? gradingScaleId,
     String? grade,
     double? gradePoint,
+    Value<double?> minimumPercentage = const Value.absent(),
+    Value<double?> maximumPercentage = const Value.absent(),
+    bool? isPassing,
+    int? displayOrder,
   }) => GradingScaleEntry(
     id: id ?? this.id,
     gradingScaleId: gradingScaleId ?? this.gradingScaleId,
     grade: grade ?? this.grade,
     gradePoint: gradePoint ?? this.gradePoint,
+    minimumPercentage: minimumPercentage.present
+        ? minimumPercentage.value
+        : this.minimumPercentage,
+    maximumPercentage: maximumPercentage.present
+        ? maximumPercentage.value
+        : this.maximumPercentage,
+    isPassing: isPassing ?? this.isPassing,
+    displayOrder: displayOrder ?? this.displayOrder,
   );
   GradingScaleEntry copyWithCompanion(GradingScaleEntriesCompanion data) {
     return GradingScaleEntry(
@@ -1181,6 +1890,16 @@ class GradingScaleEntry extends DataClass
       gradePoint: data.gradePoint.present
           ? data.gradePoint.value
           : this.gradePoint,
+      minimumPercentage: data.minimumPercentage.present
+          ? data.minimumPercentage.value
+          : this.minimumPercentage,
+      maximumPercentage: data.maximumPercentage.present
+          ? data.maximumPercentage.value
+          : this.maximumPercentage,
+      isPassing: data.isPassing.present ? data.isPassing.value : this.isPassing,
+      displayOrder: data.displayOrder.present
+          ? data.displayOrder.value
+          : this.displayOrder,
     );
   }
 
@@ -1190,13 +1909,26 @@ class GradingScaleEntry extends DataClass
           ..write('id: $id, ')
           ..write('gradingScaleId: $gradingScaleId, ')
           ..write('grade: $grade, ')
-          ..write('gradePoint: $gradePoint')
+          ..write('gradePoint: $gradePoint, ')
+          ..write('minimumPercentage: $minimumPercentage, ')
+          ..write('maximumPercentage: $maximumPercentage, ')
+          ..write('isPassing: $isPassing, ')
+          ..write('displayOrder: $displayOrder')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, gradingScaleId, grade, gradePoint);
+  int get hashCode => Object.hash(
+    id,
+    gradingScaleId,
+    grade,
+    gradePoint,
+    minimumPercentage,
+    maximumPercentage,
+    isPassing,
+    displayOrder,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1204,7 +1936,11 @@ class GradingScaleEntry extends DataClass
           other.id == this.id &&
           other.gradingScaleId == this.gradingScaleId &&
           other.grade == this.grade &&
-          other.gradePoint == this.gradePoint);
+          other.gradePoint == this.gradePoint &&
+          other.minimumPercentage == this.minimumPercentage &&
+          other.maximumPercentage == this.maximumPercentage &&
+          other.isPassing == this.isPassing &&
+          other.displayOrder == this.displayOrder);
 }
 
 class GradingScaleEntriesCompanion extends UpdateCompanion<GradingScaleEntry> {
@@ -1212,17 +1948,29 @@ class GradingScaleEntriesCompanion extends UpdateCompanion<GradingScaleEntry> {
   final Value<int> gradingScaleId;
   final Value<String> grade;
   final Value<double> gradePoint;
+  final Value<double?> minimumPercentage;
+  final Value<double?> maximumPercentage;
+  final Value<bool> isPassing;
+  final Value<int> displayOrder;
   const GradingScaleEntriesCompanion({
     this.id = const Value.absent(),
     this.gradingScaleId = const Value.absent(),
     this.grade = const Value.absent(),
     this.gradePoint = const Value.absent(),
+    this.minimumPercentage = const Value.absent(),
+    this.maximumPercentage = const Value.absent(),
+    this.isPassing = const Value.absent(),
+    this.displayOrder = const Value.absent(),
   });
   GradingScaleEntriesCompanion.insert({
     this.id = const Value.absent(),
     required int gradingScaleId,
     required String grade,
     required double gradePoint,
+    this.minimumPercentage = const Value.absent(),
+    this.maximumPercentage = const Value.absent(),
+    this.isPassing = const Value.absent(),
+    this.displayOrder = const Value.absent(),
   }) : gradingScaleId = Value(gradingScaleId),
        grade = Value(grade),
        gradePoint = Value(gradePoint);
@@ -1231,12 +1979,20 @@ class GradingScaleEntriesCompanion extends UpdateCompanion<GradingScaleEntry> {
     Expression<int>? gradingScaleId,
     Expression<String>? grade,
     Expression<double>? gradePoint,
+    Expression<double>? minimumPercentage,
+    Expression<double>? maximumPercentage,
+    Expression<bool>? isPassing,
+    Expression<int>? displayOrder,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (gradingScaleId != null) 'grading_scale_id': gradingScaleId,
       if (grade != null) 'grade': grade,
       if (gradePoint != null) 'grade_point': gradePoint,
+      if (minimumPercentage != null) 'minimum_percentage': minimumPercentage,
+      if (maximumPercentage != null) 'maximum_percentage': maximumPercentage,
+      if (isPassing != null) 'is_passing': isPassing,
+      if (displayOrder != null) 'display_order': displayOrder,
     });
   }
 
@@ -1245,12 +2001,20 @@ class GradingScaleEntriesCompanion extends UpdateCompanion<GradingScaleEntry> {
     Value<int>? gradingScaleId,
     Value<String>? grade,
     Value<double>? gradePoint,
+    Value<double?>? minimumPercentage,
+    Value<double?>? maximumPercentage,
+    Value<bool>? isPassing,
+    Value<int>? displayOrder,
   }) {
     return GradingScaleEntriesCompanion(
       id: id ?? this.id,
       gradingScaleId: gradingScaleId ?? this.gradingScaleId,
       grade: grade ?? this.grade,
       gradePoint: gradePoint ?? this.gradePoint,
+      minimumPercentage: minimumPercentage ?? this.minimumPercentage,
+      maximumPercentage: maximumPercentage ?? this.maximumPercentage,
+      isPassing: isPassing ?? this.isPassing,
+      displayOrder: displayOrder ?? this.displayOrder,
     );
   }
 
@@ -1269,6 +2033,18 @@ class GradingScaleEntriesCompanion extends UpdateCompanion<GradingScaleEntry> {
     if (gradePoint.present) {
       map['grade_point'] = Variable<double>(gradePoint.value);
     }
+    if (minimumPercentage.present) {
+      map['minimum_percentage'] = Variable<double>(minimumPercentage.value);
+    }
+    if (maximumPercentage.present) {
+      map['maximum_percentage'] = Variable<double>(maximumPercentage.value);
+    }
+    if (isPassing.present) {
+      map['is_passing'] = Variable<bool>(isPassing.value);
+    }
+    if (displayOrder.present) {
+      map['display_order'] = Variable<int>(displayOrder.value);
+    }
     return map;
   }
 
@@ -1278,7 +2054,11 @@ class GradingScaleEntriesCompanion extends UpdateCompanion<GradingScaleEntry> {
           ..write('id: $id, ')
           ..write('gradingScaleId: $gradingScaleId, ')
           ..write('grade: $grade, ')
-          ..write('gradePoint: $gradePoint')
+          ..write('gradePoint: $gradePoint, ')
+          ..write('minimumPercentage: $minimumPercentage, ')
+          ..write('maximumPercentage: $maximumPercentage, ')
+          ..write('isPassing: $isPassing, ')
+          ..write('displayOrder: $displayOrder')
           ..write(')'))
         .toString();
   }
@@ -2776,8 +3556,19 @@ typedef $$GradingScalesTableCreateCompanionBuilder =
     GradingScalesCompanion Function({
       Value<int> id,
       required String name,
-      required double maximumGpa,
+      Value<String?> country,
+      Value<String?> university,
+      Value<String?> description,
       required String scaleType,
+      Value<String> category,
+      Value<String> calculationType,
+      Value<double> minimumValue,
+      required double maximumGpa,
+      Value<double> bestValue,
+      Value<double> worstValue,
+      Value<double> passingValue,
+      Value<bool> isHigherBetter,
+      Value<int> decimalPlaces,
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -2786,8 +3577,19 @@ typedef $$GradingScalesTableUpdateCompanionBuilder =
     GradingScalesCompanion Function({
       Value<int> id,
       Value<String> name,
-      Value<double> maximumGpa,
+      Value<String?> country,
+      Value<String?> university,
+      Value<String?> description,
       Value<String> scaleType,
+      Value<String> category,
+      Value<String> calculationType,
+      Value<double> minimumValue,
+      Value<double> maximumGpa,
+      Value<double> bestValue,
+      Value<double> worstValue,
+      Value<double> passingValue,
+      Value<bool> isHigherBetter,
+      Value<int> decimalPlaces,
       Value<bool> isDefault,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
@@ -2863,13 +3665,68 @@ class $$GradingScalesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<double> get maximumGpa => $composableBuilder(
-    column: $table.maximumGpa,
+  ColumnFilters<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get university => $composableBuilder(
+    column: $table.university,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnFilters(column),
   );
 
   ColumnFilters<String> get scaleType => $composableBuilder(
     column: $table.scaleType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get calculationType => $composableBuilder(
+    column: $table.calculationType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get minimumValue => $composableBuilder(
+    column: $table.minimumValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maximumGpa => $composableBuilder(
+    column: $table.maximumGpa,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get bestValue => $composableBuilder(
+    column: $table.bestValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get worstValue => $composableBuilder(
+    column: $table.worstValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get passingValue => $composableBuilder(
+    column: $table.passingValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isHigherBetter => $composableBuilder(
+    column: $table.isHigherBetter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2958,13 +3815,68 @@ class $$GradingScalesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<double> get maximumGpa => $composableBuilder(
-    column: $table.maximumGpa,
+  ColumnOrderings<String> get country => $composableBuilder(
+    column: $table.country,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get university => $composableBuilder(
+    column: $table.university,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => ColumnOrderings(column),
   );
 
   ColumnOrderings<String> get scaleType => $composableBuilder(
     column: $table.scaleType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get calculationType => $composableBuilder(
+    column: $table.calculationType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get minimumValue => $composableBuilder(
+    column: $table.minimumValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maximumGpa => $composableBuilder(
+    column: $table.maximumGpa,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get bestValue => $composableBuilder(
+    column: $table.bestValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get worstValue => $composableBuilder(
+    column: $table.worstValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get passingValue => $composableBuilder(
+    column: $table.passingValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isHigherBetter => $composableBuilder(
+    column: $table.isHigherBetter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2999,13 +3911,62 @@ class $$GradingScalesTableAnnotationComposer
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<double> get maximumGpa => $composableBuilder(
-    column: $table.maximumGpa,
+  GeneratedColumn<String> get country =>
+      $composableBuilder(column: $table.country, builder: (column) => column);
+
+  GeneratedColumn<String> get university => $composableBuilder(
+    column: $table.university,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
     builder: (column) => column,
   );
 
   GeneratedColumn<String> get scaleType =>
       $composableBuilder(column: $table.scaleType, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get calculationType => $composableBuilder(
+    column: $table.calculationType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minimumValue => $composableBuilder(
+    column: $table.minimumValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maximumGpa => $composableBuilder(
+    column: $table.maximumGpa,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get bestValue =>
+      $composableBuilder(column: $table.bestValue, builder: (column) => column);
+
+  GeneratedColumn<double> get worstValue => $composableBuilder(
+    column: $table.worstValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get passingValue => $composableBuilder(
+    column: $table.passingValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isHigherBetter => $composableBuilder(
+    column: $table.isHigherBetter,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get decimalPlaces => $composableBuilder(
+    column: $table.decimalPlaces,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
@@ -3101,16 +4062,38 @@ class $$GradingScalesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-                Value<double> maximumGpa = const Value.absent(),
+                Value<String?> country = const Value.absent(),
+                Value<String?> university = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 Value<String> scaleType = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String> calculationType = const Value.absent(),
+                Value<double> minimumValue = const Value.absent(),
+                Value<double> maximumGpa = const Value.absent(),
+                Value<double> bestValue = const Value.absent(),
+                Value<double> worstValue = const Value.absent(),
+                Value<double> passingValue = const Value.absent(),
+                Value<bool> isHigherBetter = const Value.absent(),
+                Value<int> decimalPlaces = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => GradingScalesCompanion(
                 id: id,
                 name: name,
-                maximumGpa: maximumGpa,
+                country: country,
+                university: university,
+                description: description,
                 scaleType: scaleType,
+                category: category,
+                calculationType: calculationType,
+                minimumValue: minimumValue,
+                maximumGpa: maximumGpa,
+                bestValue: bestValue,
+                worstValue: worstValue,
+                passingValue: passingValue,
+                isHigherBetter: isHigherBetter,
+                decimalPlaces: decimalPlaces,
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -3119,16 +4102,38 @@ class $$GradingScalesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
-                required double maximumGpa,
+                Value<String?> country = const Value.absent(),
+                Value<String?> university = const Value.absent(),
+                Value<String?> description = const Value.absent(),
                 required String scaleType,
+                Value<String> category = const Value.absent(),
+                Value<String> calculationType = const Value.absent(),
+                Value<double> minimumValue = const Value.absent(),
+                required double maximumGpa,
+                Value<double> bestValue = const Value.absent(),
+                Value<double> worstValue = const Value.absent(),
+                Value<double> passingValue = const Value.absent(),
+                Value<bool> isHigherBetter = const Value.absent(),
+                Value<int> decimalPlaces = const Value.absent(),
                 Value<bool> isDefault = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => GradingScalesCompanion.insert(
                 id: id,
                 name: name,
-                maximumGpa: maximumGpa,
+                country: country,
+                university: university,
+                description: description,
                 scaleType: scaleType,
+                category: category,
+                calculationType: calculationType,
+                minimumValue: minimumValue,
+                maximumGpa: maximumGpa,
+                bestValue: bestValue,
+                worstValue: worstValue,
+                passingValue: passingValue,
+                isHigherBetter: isHigherBetter,
+                decimalPlaces: decimalPlaces,
                 isDefault: isDefault,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
@@ -3609,6 +4614,10 @@ typedef $$GradingScaleEntriesTableCreateCompanionBuilder =
       required int gradingScaleId,
       required String grade,
       required double gradePoint,
+      Value<double?> minimumPercentage,
+      Value<double?> maximumPercentage,
+      Value<bool> isPassing,
+      Value<int> displayOrder,
     });
 typedef $$GradingScaleEntriesTableUpdateCompanionBuilder =
     GradingScaleEntriesCompanion Function({
@@ -3616,6 +4625,10 @@ typedef $$GradingScaleEntriesTableUpdateCompanionBuilder =
       Value<int> gradingScaleId,
       Value<String> grade,
       Value<double> gradePoint,
+      Value<double?> minimumPercentage,
+      Value<double?> maximumPercentage,
+      Value<bool> isPassing,
+      Value<int> displayOrder,
     });
 
 final class $$GradingScaleEntriesTableReferences
@@ -3675,6 +4688,26 @@ class $$GradingScaleEntriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get minimumPercentage => $composableBuilder(
+    column: $table.minimumPercentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get maximumPercentage => $composableBuilder(
+    column: $table.maximumPercentage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPassing => $composableBuilder(
+    column: $table.isPassing,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$GradingScalesTableFilterComposer get gradingScaleId {
     final $$GradingScalesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -3723,6 +4756,26 @@ class $$GradingScaleEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get minimumPercentage => $composableBuilder(
+    column: $table.minimumPercentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get maximumPercentage => $composableBuilder(
+    column: $table.maximumPercentage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPassing => $composableBuilder(
+    column: $table.isPassing,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$GradingScalesTableOrderingComposer get gradingScaleId {
     final $$GradingScalesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -3764,6 +4817,24 @@ class $$GradingScaleEntriesTableAnnotationComposer
 
   GeneratedColumn<double> get gradePoint => $composableBuilder(
     column: $table.gradePoint,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get minimumPercentage => $composableBuilder(
+    column: $table.minimumPercentage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get maximumPercentage => $composableBuilder(
+    column: $table.maximumPercentage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get isPassing =>
+      $composableBuilder(column: $table.isPassing, builder: (column) => column);
+
+  GeneratedColumn<int> get displayOrder => $composableBuilder(
+    column: $table.displayOrder,
     builder: (column) => column,
   );
 
@@ -3831,11 +4902,19 @@ class $$GradingScaleEntriesTableTableManager
                 Value<int> gradingScaleId = const Value.absent(),
                 Value<String> grade = const Value.absent(),
                 Value<double> gradePoint = const Value.absent(),
+                Value<double?> minimumPercentage = const Value.absent(),
+                Value<double?> maximumPercentage = const Value.absent(),
+                Value<bool> isPassing = const Value.absent(),
+                Value<int> displayOrder = const Value.absent(),
               }) => GradingScaleEntriesCompanion(
                 id: id,
                 gradingScaleId: gradingScaleId,
                 grade: grade,
                 gradePoint: gradePoint,
+                minimumPercentage: minimumPercentage,
+                maximumPercentage: maximumPercentage,
+                isPassing: isPassing,
+                displayOrder: displayOrder,
               ),
           createCompanionCallback:
               ({
@@ -3843,11 +4922,19 @@ class $$GradingScaleEntriesTableTableManager
                 required int gradingScaleId,
                 required String grade,
                 required double gradePoint,
+                Value<double?> minimumPercentage = const Value.absent(),
+                Value<double?> maximumPercentage = const Value.absent(),
+                Value<bool> isPassing = const Value.absent(),
+                Value<int> displayOrder = const Value.absent(),
               }) => GradingScaleEntriesCompanion.insert(
                 id: id,
                 gradingScaleId: gradingScaleId,
                 grade: grade,
                 gradePoint: gradePoint,
+                minimumPercentage: minimumPercentage,
+                maximumPercentage: maximumPercentage,
+                isPassing: isPassing,
+                displayOrder: displayOrder,
               ),
           withReferenceMapper: (p0) => p0
               .map(

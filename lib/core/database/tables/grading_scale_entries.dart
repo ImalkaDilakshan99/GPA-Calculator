@@ -12,10 +12,13 @@ class GradingScaleEntries extends Table {
   TextColumn get grade => text()();
   RealColumn get gradePoint =>
       real().customConstraint('NOT NULL CHECK (grade_point >= 0.0)')();
+  RealColumn get minimumPercentage => real().nullable()();
+  RealColumn get maximumPercentage => real().nullable()();
+  BoolColumn get isPassing => boolean().withDefault(const Constant(true))();
+  IntColumn get displayOrder => integer().withDefault(const Constant(0))();
 
   @override
   List<Set<Column>> get uniqueKeys => [
         {gradingScaleId, grade},
       ];
 }
-

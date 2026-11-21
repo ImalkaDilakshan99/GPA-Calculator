@@ -17,20 +17,28 @@ class GradingScaleDao extends DatabaseAccessor<AppDatabase>
     List<GradingScaleEntriesCompanion> entries,
   ) {
     return transaction(() async {
-      // Validate entry grade points do not exceed maximumGpa
+      // Validate entry grade points do not exceed maximumGpa for higher-is-better scales
       final maxGpa = scale.maximumGpa.value;
-      for (final entry in entries) {
-        if (entry.gradePoint.value > maxGpa) {
-          throw ArgumentError(
-            'Grade point (${entry.gradePoint.value}) exceeds maximum scale GPA ($maxGpa)',
-          );
+      final isHigherBetter = scale.isHigherBetter.present ? scale.isHigherBetter.value : true;
+      if (isHigherBetter) {
+        for (final entry in entries) {
+          if (entry.gradePoint.value > maxGpa) {
+            throw ArgumentError(
+              'Grade point (${entry.gradePoint.value}) exceeds maximum scale GPA ($maxGpa)',
+            );
+          }
         }
       }
 
       final scaleId = await into(gradingScales).insert(scale);
-      for (final entry in entries) {
+      for (int i = 0; i < entries.length; i++) {
+        final entry = entries[i];
+        final order = entry.displayOrder.present ? entry.displayOrder.value : i;
         await into(gradingScaleEntries).insert(
-          entry.copyWith(gradingScaleId: Value(scaleId)),
+          entry.copyWith(
+            gradingScaleId: Value(scaleId),
+            displayOrder: Value(order),
+          ),
         );
       }
       return scaleId;
@@ -39,12 +47,20 @@ class GradingScaleDao extends DatabaseAccessor<AppDatabase>
 
   /// Retrieves all grading scales.
   Future<List<GradingScale>> getAllGradingScales() {
-    return select(gradingScales).get();
+    return (select(gradingScales)
+          ..orderBy([
+            (tbl) => OrderingTerm.asc(tbl.id),
+          ]))
+        .get();
   }
 
   /// Observes all grading scales.
   Stream<List<GradingScale>> watchGradingScales() {
-    return select(gradingScales).watch();
+    return (select(gradingScales)
+          ..orderBy([
+            (tbl) => OrderingTerm.asc(tbl.id),
+          ]))
+        .watch();
   }
 
   /// Retrieves a specific grading scale by ID.
@@ -61,22 +77,36 @@ class GradingScaleDao extends DatabaseAccessor<AppDatabase>
         .getSingleOrNull();
   }
 
-  /// Retrieves all grade-to-point entries for a given scale in descending order.
+  /// Sets a specific grading scale as default and unsets all others transactionally.
+  Future<void> setDefaultGradingScale(int id) {
+    return transaction(() async {
+      await update(gradingScales).write(
+        const GradingScalesCompanion(isDefault: Value(false)),
+      );
+      await (update(gradingScales)..where((tbl) => tbl.id.equals(id))).write(
+        const GradingScalesCompanion(isDefault: Value(true)),
+      );
+    });
+  }
+
+  /// Retrieves all grade-to-point entries for a given scale in order.
   Future<List<GradingScaleEntry>> getEntriesForScale(int scaleId) {
     return (select(gradingScaleEntries)
           ..where((tbl) => tbl.gradingScaleId.equals(scaleId))
           ..orderBy([
+            (tbl) => OrderingTerm.asc(tbl.displayOrder),
             (tbl) => OrderingTerm.desc(tbl.gradePoint),
             (tbl) => OrderingTerm.asc(tbl.id),
           ]))
         .get();
   }
 
-  /// Observes entries for a given scale.
+  /// Observes entries for a given scale in order.
   Stream<List<GradingScaleEntry>> watchEntriesForScale(int scaleId) {
     return (select(gradingScaleEntries)
           ..where((tbl) => tbl.gradingScaleId.equals(scaleId))
           ..orderBy([
+            (tbl) => OrderingTerm.asc(tbl.displayOrder),
             (tbl) => OrderingTerm.desc(tbl.gradePoint),
             (tbl) => OrderingTerm.asc(tbl.id),
           ]))
@@ -107,9 +137,14 @@ class GradingScaleDao extends DatabaseAccessor<AppDatabase>
         await (delete(gradingScaleEntries)
               ..where((tbl) => tbl.gradingScaleId.equals(id)))
             .go();
-        for (final entry in entries) {
+        for (int i = 0; i < entries.length; i++) {
+          final entry = entries[i];
+          final order = entry.displayOrder.present ? entry.displayOrder.value : i;
           await into(gradingScaleEntries).insert(
-            entry.copyWith(gradingScaleId: Value(id)),
+            entry.copyWith(
+              gradingScaleId: Value(id),
+              displayOrder: Value(order),
+            ),
           );
         }
       }
@@ -141,4 +176,3 @@ class GradingScaleDao extends DatabaseAccessor<AppDatabase>
     });
   }
 }
-

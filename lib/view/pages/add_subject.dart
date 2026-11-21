@@ -60,6 +60,18 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
   @override
   Widget build(BuildContext context) {
     final semestersAsync = ref.watch(semestersStreamProvider);
+    final availableGrades = ref.watch(activeGradeDefinitionsProvider);
+
+    // Match initial edit attempt grade against active grading scale definitions
+    if (selectedGrade == null && widget.attemptToEdit?.grade != null && availableGrades.isNotEmpty) {
+      final editGrade = widget.attemptToEdit!.grade!.trim().toUpperCase();
+      final match = availableGrades.where(
+        (g) => g.grade.trim().toUpperCase() == editGrade,
+      );
+      if (match.isNotEmpty) {
+        selectedGrade = match.first;
+      }
+    }
 
     // Pre-select semester when semesters load and we have an initial ID
     final targetSemesterId = widget.attemptToEdit?.semesterId ?? widget.initialSemesterId;
@@ -192,7 +204,7 @@ class _AddSubjectState extends ConsumerState<AddSubject> {
                       initialValue: selectedGrade,
                       dropdownColor: AppColors.surfaceVariant,
                       hint: const Text('Select Grade'),
-                      items: gradeDefinitions.map((grade) {
+                      items: availableGrades.map((grade) {
                         return DropdownMenuItem<GradeModel>(
                           value: grade,
                           child: Row(

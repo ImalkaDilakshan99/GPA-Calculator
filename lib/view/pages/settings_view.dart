@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gpa_calculator/core/theme/theme.dart';
+import 'package:gpa_calculator/view/pages/grading_scale_management_view.dart';
 import 'package:gpa_calculator/viewModels/dashboard_view_model.dart';
 
 class SettingsView extends ConsumerWidget {
@@ -8,6 +9,8 @@ class SettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final activeScale = ref.watch(activeGradingScaleProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -30,17 +33,24 @@ class SettingsView extends ConsumerWidget {
                 children: [
                   _settingTile(
                     icon: Icons.grade_outlined,
-                    title: 'Grading Scale',
-                    subtitle: 'Standard 4.0 Scale (A+ to F)',
-                    trailing: const Text(
-                      '4.00 Max',
-                      style: TextStyle(
+                    title: 'GPA Grading Scale',
+                    subtitle: activeScale.name,
+                    trailing: Text(
+                      '${activeScale.maximumGpa.toStringAsFixed(1)} Max',
+                      style: const TextStyle(
                         fontFamily: AppTextStyles.fontFamily,
                         color: AppColors.secondary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    onTap: () => _showGradingScaleDialog(context),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const GradingScaleManagementView(),
+                        ),
+                      );
+                    },
                   ),
                   const Divider(
                     color: AppColors.borderSubtle,
@@ -205,72 +215,6 @@ class SettingsView extends ConsumerWidget {
           ],
         ),
       ),
-    );
-  }
-
-  void _showGradingScaleDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surface,
-          shape: const RoundedRectangleBorder(
-            borderRadius: AppDimensions.borderRadiusMd,
-          ),
-          title: const Text(
-            'Grading Scale',
-            style: AppTextStyles.headlineSmall,
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: gradeDefinitions.length,
-              separatorBuilder: (context, index) =>
-                  const Divider(color: AppColors.borderSubtle, height: 8),
-              itemBuilder: (context, index) {
-                final grade = gradeDefinitions[index];
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: AppDecorations.gradeBadge(
-                        Color(grade.colorValue),
-                      ),
-                      child: Center(
-                        child: Text(
-                          grade.grade,
-                          style: const TextStyle(
-                            fontFamily: AppTextStyles.fontFamily,
-                            color: AppColors.onPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${grade.gradePoint.toStringAsFixed(2)} Points',
-                      style: AppTextStyles.bodyMedium,
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text(
-                'Close',
-                style: TextStyle(color: AppColors.secondary),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 

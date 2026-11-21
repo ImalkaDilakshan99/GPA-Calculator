@@ -20,11 +20,11 @@ void main() {
   group('GradingScales & Predefined Seed Data', () {
     test('Default predefined scales are seeded automatically on creation', () async {
       final scales = await db.gradingScaleDao.getAllGradingScales();
-      expect(scales.length, 3);
+      expect(scales.length, 16);
 
       final defaultScale = await db.gradingScaleDao.getDefaultGradingScale();
       expect(defaultScale, isNotNull);
-      expect(defaultScale!.name, 'Standard 4.0 Scale');
+      expect(defaultScale!.name, contains('4.0 Scale'));
       expect(defaultScale.maximumGpa, 4.0);
       expect(defaultScale.isDefault, isTrue);
       expect(defaultScale.scaleType, 'predefined');

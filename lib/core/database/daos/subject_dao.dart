@@ -99,5 +99,15 @@ class SubjectDao extends DatabaseAccessor<AppDatabase> with _$SubjectDaoMixin {
           ..where((tbl) => tbl.semesterId.equals(semesterId)))
         .watch();
   }
+
+  /// Retrieves all semester subject attempts across all semesters.
+  Future<List<SemesterSubject>> getAllSemesterSubjects() {
+    return select(semesterSubjects).get();
+  }
+
+  /// Updates a semester subject row directly.
+  Future<bool> updateSemesterSubject(SemesterSubject row) {
+    return update(semesterSubjects).replace(row);
+  }
 }
 

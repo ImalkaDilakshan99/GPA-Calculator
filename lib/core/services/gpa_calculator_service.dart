@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:gpa_calculator/domain/entities/grading_scale_entity.dart';
 import 'package:gpa_calculator/domain/entities/semester_entity.dart';
 import 'package:gpa_calculator/domain/entities/semester_subject_entity.dart';
 import 'package:gpa_calculator/domain/enums/repeat_subject_policy.dart';
@@ -31,7 +33,7 @@ class GpaCalculationResult {
 }
 
 /// Service dedicated to all GPA and CGPA mathematical calculations,
-/// adhering strictly to academic policies and repeated-course handling.
+/// adhering strictly to academic policies, grading scales, and repeated-course handling.
 class GpaCalculatorService {
   final RepeatSubjectPolicy defaultRepeatPolicy;
 
@@ -42,13 +44,15 @@ class GpaCalculatorService {
   /// Calculates semester GPA: SUM(credits × gradePoint) / SUM(credits).
   ///
   /// Incomplete subjects (where gradePoint is null) are excluded from the calculation.
-  /// Failed subjects (gradePoint == 0.0) are included and contribute to the credit denominator.
+  /// Failed subjects are included and contribute to the credit denominator.
   GpaCalculationResult calculateSemesterGpa(
     List<SemesterSubjectEntity> subjects, {
-    int decimalPlaces = 2,
+    GradingScaleEntity? scale,
+    int? decimalPlaces,
   }) {
     if (subjects.isEmpty) return GpaCalculationResult.empty;
 
+    final places = decimalPlaces ?? scale?.decimalPlaces ?? 2;
     double totalPoints = 0.0;
     double totalCredits = 0.0;
     int completedCount = 0;
@@ -65,7 +69,19 @@ class GpaCalculatorService {
 
       completedCount++;
       final points = s.gradePoint!;
-      if (points == 0.0) {
+
+      bool isFailed;
+      if (scale != null) {
+        if (scale.isHigherBetter) {
+          isFailed = points < scale.passingValue || points == scale.worstValue;
+        } else {
+          isFailed = points > scale.passingValue || points == scale.worstValue;
+        }
+      } else {
+        isFailed = points == 0.0;
+      }
+
+      if (isFailed) {
         failedCount++;
       }
 
@@ -74,7 +90,7 @@ class GpaCalculatorService {
     }
 
     final rawGpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0.0;
-    final roundedGpa = _round(rawGpa, decimalPlaces);
+    final roundedGpa = _round(rawGpa, places);
 
     return GpaCalculationResult(
       gpa: roundedGpa,
@@ -86,15 +102,13 @@ class GpaCalculatorService {
     );
   }
 
-  /// Calculates cumulative GPA across all semesters, applying the specified [RepeatSubjectPolicy].
-  ///
-  /// - [RepeatSubjectPolicy.latestAttempt]: Keeps only the subject attempt with the highest attemptNumber.
-  /// - [RepeatSubjectPolicy.bestAttempt]: Keeps the attempt with the highest gradePoint.
-  /// - [RepeatSubjectPolicy.allAttempts]: Counts every attempt without filtering.
+  /// Calculates cumulative GPA across all semesters, applying the specified [RepeatSubjectPolicy]
+  /// and scale properties.
   GpaCalculationResult calculateCumulativeGpa(
     List<SemesterEntity> semesters, {
+    GradingScaleEntity? scale,
     RepeatSubjectPolicy? policy,
-    int decimalPlaces = 2,
+    int? decimalPlaces,
   }) {
     final activePolicy = policy ?? defaultRepeatPolicy;
 
@@ -106,6 +120,7 @@ class GpaCalculatorService {
 
     return calculateCumulativeGpaFromAttempts(
       allAttempts,
+      scale: scale,
       policy: activePolicy,
       decimalPlaces: decimalPlaces,
     );
@@ -114,23 +129,29 @@ class GpaCalculatorService {
   /// Calculates cumulative GPA directly from a list of attempts.
   GpaCalculationResult calculateCumulativeGpaFromAttempts(
     List<SemesterSubjectEntity> attempts, {
+    GradingScaleEntity? scale,
     RepeatSubjectPolicy? policy,
-    int decimalPlaces = 2,
+    int? decimalPlaces,
   }) {
     final activePolicy = policy ?? defaultRepeatPolicy;
     if (attempts.isEmpty) return GpaCalculationResult.empty;
 
     // Apply repeat subject policy
-    final effectiveAttempts = _filterAttemptsByPolicy(attempts, activePolicy);
+    final effectiveAttempts = _filterAttemptsByPolicy(attempts, activePolicy, scale);
 
-    return calculateSemesterGpa(effectiveAttempts, decimalPlaces: decimalPlaces);
+    return calculateSemesterGpa(
+      effectiveAttempts,
+      scale: scale,
+      decimalPlaces: decimalPlaces,
+    );
   }
 
   /// Filters attempts according to the specified policy.
   List<SemesterSubjectEntity> _filterAttemptsByPolicy(
     List<SemesterSubjectEntity> attempts,
-    RepeatSubjectPolicy policy,
-  ) {
+    RepeatSubjectPolicy policy, [
+    GradingScaleEntity? scale,
+  ]) {
     if (policy == RepeatSubjectPolicy.allAttempts) {
       return attempts;
     }
@@ -156,10 +177,15 @@ class GpaCalculatorService {
           list.sort((a, b) => b.attemptNumber.compareTo(a.attemptNumber));
           result.add(list.first);
         case RepeatSubjectPolicy.bestAttempt:
-          // Pick the completed attempt with highest gradePoint; if none completed, pick first
+          // Pick the completed attempt with best gradePoint; if inverted scale, lowest is best
           final completed = list.where((a) => a.isCompleted).toList();
           if (completed.isNotEmpty) {
-            completed.sort((a, b) => b.gradePoint!.compareTo(a.gradePoint!));
+            final isHigherBetter = scale?.isHigherBetter ?? true;
+            if (isHigherBetter) {
+              completed.sort((a, b) => b.gradePoint!.compareTo(a.gradePoint!));
+            } else {
+              completed.sort((a, b) => a.gradePoint!.compareTo(b.gradePoint!));
+            }
             result.add(completed.first);
           } else {
             result.add(list.first);
@@ -173,8 +199,7 @@ class GpaCalculatorService {
   }
 
   double _round(double val, int places) {
-    final mod = places == 2 ? 100.0 : (places == 4 ? 10000.0 : 100.0);
+    final mod = math.pow(10, places).toDouble();
     return (val * mod).round() / mod;
   }
 }
-
